@@ -65,7 +65,6 @@ router.post('/join', async function(req, res) {
             delete join_data.id;
             delete join_data.pass;
             delete join_data.check;
-            join_data.valid = false;
             await file_system.fileMK(path_user,JSON.stringify(join_data),"info.json");
             await file_system.fileMK(path_user,""+new Date(),"create_at.txt");
         }

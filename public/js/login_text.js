@@ -1,4 +1,3 @@
-const board_info = document.getElementById("boards");
 const user_info  = document.getElementById("user");
 if(window.location.pathname == "/web/login" || window.location.pathname == "/web/join"){
     ReactDOM.render(tag_a("/web/login",React.createElement("div",null,"로그인")), user_info);

@@ -11,6 +11,6 @@ async function fetchData(api,send_data) {
         return response;
     } catch (error) {
         console.error('Error:', error);
-        return {error:ture}
+        return {error:true}
     }
 }
