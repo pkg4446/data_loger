@@ -11,7 +11,7 @@ if(!file_system.Sync_check(path_data.admin()))  file_system.Sync_folderMK(path_d
 if(!file_system.Sync_check(path_data.user()))   file_system.Sync_folderMK(path_data.user());
 
 const app   = express();
-const port  = 3002;
+const port  = 3010;
 
 app.use(compression());
 app.use(express.json());
