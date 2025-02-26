@@ -5,6 +5,7 @@ const web       = require('./web');
 const log       = require('./log');
 const admin     = require('./admin');
 const user      = require('./user');
+const device    = require('./device');
 
 router.route("/")
     .get(async function(req, res) {
@@ -19,5 +20,6 @@ router.use('/web',web);
 router.use('/log',log);
 router.use('/admin',admin);
 router.use('/user',user);
+router.use('/device',device);
 
 module.exports  = router;

@@ -1,22 +1,20 @@
 page_init();
 async function page_init() {
+    const root  = ReactDOM.createRoot(document.getElementById("root"));
     const data_row = {
         display: "grid",
         gridTemplateColumns: "repeat(2, 1fr)",
         gap: "10px",
         marginBottom: "5px"
     }
-    const cell = {
+    const cell  = {
         border: "1px solid #ddd",
         borderRadius: "2px",
         textAlign: "center",
         backgroundColor: "white",
         transition: "transform 0.2s ease"
     }
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-
-    const container = React.createElement("div",{className:"submit-container"},[
+    let elemets = [
         React.createElement("h2",null,"장비등록"),
         React.createElement("form",{id:"userForm"},[
             React.createElement("div",{style:data_row},[
@@ -35,11 +33,35 @@ async function page_init() {
             ]),
             React.createElement("br",null,null),
             React.createElement("button",{className:"submit-button"},"등록"),
-        ]),
-        React.createElement("div",null,"enable"),
-    ]);
-
+        ])
+    ];
+    const send_data = {
+        id:     localStorage.getItem('user'),
+        token:  localStorage.getItem('token')
+    };
+    const response = await(await fetchData("device/able",send_data)).json();
+    console.log(response);
+    if(response.length > 0){
+        elemets.push(
+            React.createElement("div",{style:{alignItems:"center",margin:"20px 0",color:"#888"}},"연결 가능한 벌통"),
+            React.createElement("div",{className:"form-section"},
+                React.createElement(DeviceList, {initialList:response}, null)
+            ),
+        );
+    }
+    
+    const container = React.createElement("div",{className:"submit-container"},elemets);
     root.render(container);
 }
 
-page_init();
+function DeviceList({initialList}) {
+  const [list, setList] = React.useState([initialList]);
+  
+  return React.createElement(
+    'div',
+    null,
+    list.map((item, index) =>
+      React.createElement('div', {className:"user-link", key: index }, item)
+    )
+  );
+}
