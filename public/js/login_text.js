@@ -5,10 +5,10 @@ if(window.location.pathname == "/web/login" || window.location.pathname == "/web
     window.location.replace('/web/login');
 }else{
     const category = {
-        "login":"로그아웃",
-        "info":"유저정보",
-        "list":"현황",
-        "regist":"장비등록"
+        "login"     : "로 그 아 웃",
+        "list"      : "장 비 목 록",
+        "connect"   : "장 비 등 록",
+        "info"      : "사용자 정보",
     }
     const user_menu = [];
     for (const key in category) {

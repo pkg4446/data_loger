@@ -44,4 +44,11 @@ router.get('/info', async function(req, res) {
     res.status(201).send(web_page);
 });
 
+router.get('/connect', async function(req, res) {
+    const css = html.css("common")+html.css("write");
+    const js  = html.js("fetch")+html.js("login_text")+html.js("device_reg");
+    const web_page = await html.page("common",css,js);
+    res.status(201).send(web_page);
+});
+
 module.exports = router;

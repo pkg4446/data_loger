@@ -2,6 +2,7 @@ const crypto        = require("crypto");
 const express       = require('express');
 const file_system   = require('../api/fs_core');
 const path_data     = require('../api/fs_path');
+const login_check   = require('../api/login_check');
 const router        = express.Router();
 
 router.post('/login', async function(req, res) {
@@ -37,12 +38,9 @@ router.post('/info', async function(req, res) {
     const login_data = req.body;
     if(login_data.id!=undefined&&login_data.token!=undefined){
         const path_user = path_data.user()+"/"+login_data.id;
-        if(await file_system.check(path_user+"/config.csv") && await file_system.check(path_user+"/login.txt")){
+        if(await login_check.user(login_data.token,login_data.id)){
             status_code = 200;
             response = await file_system.fileRead(path_user,"info.json");
-        }else{
-            status_code = 406;
-            response    = "userid";
         }
     }
     res.status(status_code).send(response);

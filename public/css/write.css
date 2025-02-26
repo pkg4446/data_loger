@@ -4,7 +4,7 @@
 }
 
 .input-field {
-    width: 99.6%;
+    width: 100%;
     padding: 10px 0px;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -43,8 +43,7 @@
     background-color: #b40027;
 }
 
-@media (max-width: 480px) {
-    .submit-container {
-        padding: 30px 20px;
-    }
+.submit-container {
+    width: 100%;
+    padding: 30px 20px;
 }
