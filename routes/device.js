@@ -6,6 +6,22 @@ const login_check   = require('../api/login_check');
 const device        = require('../api/device');
 const router        = express.Router();
 
+router.post('/able', async function(req, res) {
+    let status_code = 400;
+    let response    = "nodata";
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined){
+        const   path_device = path_data.device();
+        if(file_system.check(path_device)){
+            status_code = 200;
+            const requestIp = require('request-ip');
+            const conn_ip   = requestIp.getClientIp(req);
+            response = await device.ip_check(conn_ip);
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 router.post('/connect', async function(req, res) {
     let status_code = 400;
     const user_data = req.body;
@@ -79,22 +95,5 @@ router.post('/list', async function(req, res) {
     }
     res.status(status_code).send(response);
 });
-
-router.post('/able', async function(req, res) {
-    let status_code = 400;
-    let response    = "nodata";
-    const user_data = req.body;
-    if(user_data.id!=undefined && user_data.token!=undefined){
-        const   path_device = path_data.device();
-        if(file_system.check(path_device)){
-            status_code = 200;
-            const requestIp = require('request-ip');
-            const conn_ip   = requestIp.getClientIp(req);
-            response = await device.ip_check(conn_ip);
-        }
-    }
-    res.status(status_code).send(response);
-});
-
 
 module.exports = router;

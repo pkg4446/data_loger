@@ -35,11 +35,10 @@ async function page_init() {
             React.createElement("button",{className:"submit-button"},"등록"),
         ])
     ];
-    const send_data = {
+    const response = await(await fetchData("device/able",{
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token')
-    };
-    const response = await(await fetchData("device/able",send_data)).json();
+    })).json();
     console.log(response);
     if(response.length > 0){
         elemets.push(
@@ -55,13 +54,47 @@ async function page_init() {
 }
 
 function DeviceList({initialList}) {
-  const [list, setList] = React.useState([initialList]);
+  const [list, setList] = React.useState(initialList);
+
+  const handleRemoveItem = (indexToRemove) => {
+    setList((prevList) => prevList.filter((_, index) => index !== indexToRemove));
+  };
   
   return React.createElement(
     'div',
     null,
     list.map((item, index) =>
-      React.createElement('div', {className:"user-link", key: index }, item)
+        React.createElement('div', {className:"user-link", style:{cursor:"pointer"}, key:index, onClick:()=>{
+            Swal.fire({
+                position: "top",
+                icon:   "info",
+                title:  "장비 이름을 정해주세요.",
+                showConfirmButton: false,
+                input:  'text',
+            }).then((result)=>{
+                if(result.isConfirmed && result.value.length > 0){
+                    fetchData("device/connect",{
+                        id:     localStorage.getItem('user'),
+                        token:  localStorage.getItem('token'),
+                        dvid:   item,
+                        name:   result.value
+                    })
+                    .then(response =>{
+                        console.log(response);
+                        if(response.status == 200){
+                            Swal.fire({
+                                position: "top",
+                                icon:   "success",
+                                title:  "등록되었습니다.",
+                                showConfirmButton: false,
+                                timer:  1500
+                            }).then(()=>handleRemoveItem(index));
+                        }
+                    });
+                }                
+            })
+            
+        }}, item)
     )
   );
 }
