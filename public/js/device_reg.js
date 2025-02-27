@@ -14,14 +14,28 @@ async function page_init() {
         backgroundColor: "white",
         transition: "transform 0.2s ease"
     }
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const data = {
+            device_type: formData.get("device_type"),
+            device: formData.get("device"),
+            device_name: formData.get("device_name"),
+        };
+        alert("Form Data: " + JSON.stringify(data));
+        console.log("Form Data:", data);
+        // 여기서 데이터를 서버로 보내는 요청 코드를 추가하세요.
+    }
+
     let elemets = [
         React.createElement("h2",null,"장비등록"),
-        React.createElement("form",{id:"userForm"},[
+        React.createElement("form",{id:"userForm", onSubmit: handleSubmit},[
             React.createElement("div",{style:data_row},[
                 React.createElement("label",{style:cell, htmlFor:"device"},"벌통"),
                 React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"hive", defaultChecked:true}),
                 React.createElement("label",{style:cell, htmlFor:"device"},"활동감지"),
-                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"active"}),
+                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"act"}),
             ]),
             React.createElement("div",{className:"input-group"},[
                 React.createElement("label",{htmlFor:"device"},"장비ID"),
@@ -44,7 +58,7 @@ async function page_init() {
     for (const type_key in response) {
         const type_list = response[type_key];
         if(type_list.length > 0){
-            enable_device.push(React.createElement("p",{className:"form-section"},type_key),React.createElement(DeviceList, {initialList:type_list}));
+            enable_device.push(React.createElement("p",{className:"form-section"},type_key),React.createElement(DeviceList, {initialList:type_list,type:type_key}));
         }         
     }
     if(enable_device.length > 0){
@@ -58,7 +72,7 @@ async function page_init() {
     root.render(container);
 }
 
-function DeviceList({initialList}) {
+function DeviceList({initialList,type}) {
   const [list, setList] = React.useState(initialList);
 
   const handleRemoveItem = (indexToRemove) => {
@@ -73,7 +87,7 @@ function DeviceList({initialList}) {
             Swal.fire({
                 position: "top",
                 icon:   "info",
-                title:  "장비 이름을 정해주세요.",
+                title:  type+" 장비 이름을 정해주세요.",
                 showConfirmButton: false,
                 input:  'text',
             }).then((result)=>{
@@ -82,6 +96,7 @@ function DeviceList({initialList}) {
                         id:     localStorage.getItem('user'),
                         token:  localStorage.getItem('token'),
                         dvid:   item,
+                        type:   type,
                         name:   result.value
                     })
                     .then(response =>{

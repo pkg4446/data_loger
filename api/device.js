@@ -21,10 +21,12 @@ module.exports = {
         return response;
     },
 
-    connect: async function(user, dvid, name){
+    connect: async function(user, dvid, type, name){
         let response = 401;
         const path_user   = path_data.user()+"/"+user;
-        const path_device = path_data.device()+"/"+dvid;
+        const path_device = path_data.device(type)+"/"+dvid;
+
+        console.log(path_device);
 
         if(await file_system.check(path_user) && await file_system.check(path_device)){
             if(await file_system.check(path_device+"/owner.txt")){
@@ -42,9 +44,9 @@ module.exports = {
                             break;
                         }
                     }
-                    if(!device_duplication) await file_system.fileADD(path_user,"\r\n"+dvid+","+name,"device.csv");
+                    if(!device_duplication) await file_system.fileADD(path_user,"\r\n"+dvid+","+type+","+name,"device.csv");
                 }else{
-                    await file_system.fileMK(path_user,dvid+","+name,"device.csv");
+                    await file_system.fileMK(path_user,dvid+","+type+","+name,"device.csv");
                 }
                 await file_system.fileMK(path_device,user,"owner.txt");
             }
@@ -52,7 +54,7 @@ module.exports = {
         return response;
     },
 
-    disconnect: async function(user, dvid, name){
+    disconnect: async function(user, dvid){
         let response = 401;
         const path_user   = path_data.user()+"/"+user;
         const path_device = path_data.device()+"/"+dvid;
