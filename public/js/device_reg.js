@@ -40,12 +40,17 @@ async function page_init() {
         token:  localStorage.getItem('token')
     })).json();
     console.log(response);
-    if(response.length > 0){
+    let enable_device = [];
+    for (const type_key in response) {
+        const type_list = response[type_key];
+        if(type_list.length > 0){
+            enable_device.push(React.createElement("p",{className:"form-section"},type_key),React.createElement(DeviceList, {initialList:type_list}));
+        }         
+    }
+    if(enable_device.length > 0){
         elemets.push(
             React.createElement("div",{style:{alignItems:"center",margin:"20px 0",color:"#888"}},"연결 가능한 벌통"),
-            React.createElement("div",{className:"form-section"},
-                React.createElement(DeviceList, {initialList:response}, null)
-            ),
+            React.createElement("div",null,enable_device)
         );
     }
     

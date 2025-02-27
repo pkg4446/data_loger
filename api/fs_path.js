@@ -1,6 +1,7 @@
 module.exports = {
-    device : function(){
-        return "./data/device";
+    device : function(type){
+        if(type==undefined) return "./data/device";
+        return "./data/device/"+type;
     },
     admin : function(){
         return "./data/admin";

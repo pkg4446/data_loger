@@ -11,7 +11,7 @@ router.post('/act', async function(req, res) {
         req.body.DVC = req.body.DVC.replaceAll(":","_");
 
         const log_date = new Date();
-        const path_device = path_data.device()+"/"+req.body.DVC;
+        const path_device = path_data.device("act")+"/"+req.body.DVC;
         const device_ip   = requestIp.getClientIp(req);
         let path_log = path_device+"/"+log_date.getFullYear()+"/";
         if(await file_system.check(path_device+"/ip.txt")){

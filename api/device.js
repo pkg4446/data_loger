@@ -3,13 +3,18 @@ const path_data = require('./fs_path');
 
 module.exports = {
     ip_check: async function(conn_ip){ 
-        const device_list = await file_system.Dir(path_data.device());
-        let response = [];
-        for (const device of device_list) {
-            const device_path = path_data.device()+"/"+device;
-            if(!await file_system.check(device_path+"/owner.txt") && await file_system.check(device_path+"/ip.txt")){
-                if(await file_system.fileRead(device_path,"ip.txt") == conn_ip){
-                    response.push(device);
+        const type_list = await file_system.Dir(path_data.device());
+        let response = {};
+        for (const device_type of type_list) {
+            const type_path = path_data.device()+"/"+device_type;
+            const device_list = await file_system.Dir(type_path);
+            for (const device of device_list) {
+                const device_path = type_path+"/"+device;
+                if(!await file_system.check(device_path+"/owner.txt") && await file_system.check(device_path+"/ip.txt")){
+                    if(await file_system.fileRead(device_path,"ip.txt") == conn_ip){
+                        if(!response[device_type]) response[device_type] = [];
+                        response[device_type].push(device);
+                    }
                 }
             }
         }
