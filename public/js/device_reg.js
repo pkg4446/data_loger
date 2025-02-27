@@ -45,7 +45,6 @@ async function page_init() {
                 React.createElement("label",{htmlFor:"device_name"},"장비 이름"),
                 React.createElement("input",{type:"text", className:"input-field", id:"device_name", required:true},null),
             ]),
-            React.createElement("br",null,null),
             React.createElement("button",{className:"submit-button"},"등록"),
         ])
     ];
