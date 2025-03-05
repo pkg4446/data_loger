@@ -12,7 +12,6 @@ async function page_init() {
         borderRadius: "2px",
         textAlign: "center",
         backgroundColor: "white",
-        transition: "transform 0.2s ease"
     }
 
     const handleSubmit = (event) => {

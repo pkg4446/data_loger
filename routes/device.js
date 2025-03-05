@@ -6,14 +6,36 @@ const login_check   = require('../api/login_check');
 const device        = require('../api/device');
 const router        = express.Router();
 
+router.post('/last', async function(req, res) {
+    let status_code = 400;
+    let response    = "nodata";
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined){
+        if(await login_check.user(user_data.token,user_data.id)){
+            const   path_device = path_data.device(user_data.type)+"/"+user_data.dvid;
+            if(await file_system.check(path_device+"/lastest.json")){
+                status_code = 200;
+                response    = await file_system.fileRead(path_device,"lastest.json");
+            }else{
+                status_code = 403;
+                response    = "device";
+            }
+        }else{
+            status_code = 401;
+            response    = "user";
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 router.post('/list', async function(req, res) {
     let status_code = 400;
     let response    = "nodata";
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined){
-        const   path_user   = path_data.user()+"/"+user_data.id;
         if(await login_check.user(user_data.token,user_data.id)){
-            if(file_system.check(path_user+"/device.csv")){
+            const   path_user   = path_data.user()+"/"+user_data.id;
+            if(await file_system.check(path_user+"/device.csv")){
                 status_code = 200;
                 response    = await file_system.fileRead(path_user,"device.csv");
             }else{
@@ -34,7 +56,7 @@ router.post('/able', async function(req, res) {
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined){
         const   path_device = path_data.device();
-        if(file_system.check(path_device)){
+        if(await file_system.check(path_device)){
             status_code = 200;
             const requestIp = require('request-ip');
             const conn_ip   = requestIp.getClientIp(req);
