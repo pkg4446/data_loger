@@ -51,6 +51,13 @@ router.get('/list', async function(req, res) {
     res.status(201).send(web_page);
 });
 
+router.get('/act/:id', async function(req, res) {
+    const css = html.css("common")+html.css("user");
+    const js  = html.js("fetch")+html.js("login_text")+html.js("device_act");
+    const web_page = await html.page("common",css,js);
+    res.status(201).send(web_page);
+});
+
 router.get('/connect', async function(req, res) {
     const css = html.css("common")+html.css("write")+html.css("user");
     const js  = html.js("fetch")+html.js("login_text")+html.js("device_reg");

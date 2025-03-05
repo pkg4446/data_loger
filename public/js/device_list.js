@@ -21,7 +21,7 @@ async function equipment() {
             const last_data = await(await fetchData("device/last",sendData)).json();
             devices.act.push(
                 React.createElement("div",{className:"device-table"},[
-                    React.createElement("div",{className:"device-header"},status[2]+" 🐝 출입기록"),
+                    React.createElement("div",{className:"device-header",onClick:()=>{location.href="/web/act/"+status[0]}},status[2]+" 🐝 출입기록"),
                     React.createElement("div",{className:"device-row"},[
                         React.createElement("div",{className:"device-label"},"ID"),   //device name
                         React.createElement("div",{className:"device-value"},status[0].replaceAll("_",":"))  //device mac address

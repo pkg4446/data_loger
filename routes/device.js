@@ -28,6 +28,28 @@ router.post('/last', async function(req, res) {
     res.status(status_code).send(response);
 });
 
+router.post('/log', async function(req, res) {
+    let status_code = 400;
+    let response    = "nodata";
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined){
+        if(await login_check.user(user_data.token,user_data.id)){
+            const   path_device = path_data.device(user_data.type)+"/"+user_data.dvid;
+            if(await file_system.check(path_device+"/lastest.json")){
+                status_code = 200;
+                response    = await file_system.fileRead(path_device,"lastest.json");
+            }else{
+                status_code = 403;
+                response    = "device";
+            }
+        }else{
+            status_code = 401;
+            response    = "user";
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 router.post('/list', async function(req, res) {
     let status_code = 400;
     let response    = "nodata";

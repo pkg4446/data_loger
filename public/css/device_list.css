@@ -9,6 +9,7 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 .device-header {
+    cursor: pointer;
     background-color: #FFD700;
     color: #8B4513;
     padding: 15px;
