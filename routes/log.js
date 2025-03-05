@@ -22,6 +22,8 @@ router.post('/act', async function(req, res) {
         let filename = "";
         if(log_date.getDate()<10) filename += "0";
         filename += log_date.getDate();
+        
+        req.body.DATA.date = log_date;
 
         if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
         const file_content = JSON.stringify(req.body.DATA);
