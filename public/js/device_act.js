@@ -4,6 +4,15 @@ function init() {
 }
 
 async function graph(select_day) {
+    // 오늘 날짜 생성 (시간은 00:00:00으로 설정)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // select_day가 오늘보다 미래인 경우 오늘 날짜로 제한
+    if (select_day > today) {
+        select_day = new Date(today);
+    }
+    
     const sendData = {
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token'),
@@ -61,10 +70,16 @@ async function graph(select_day) {
         graph(prevDate);
     }
     
-    // 다음 날짜로 이동
+    // 다음 날짜로 이동 (오늘 날짜 이후로는 불가)
     function nextDay() {
         const nextDate = new Date(select_day);
         nextDate.setDate(nextDate.getDate() + 1);
+        
+        // 다음 날짜가 오늘 이후인지 확인
+        if (nextDate > today) {
+            return; // 오늘 이후로는 이동 불가
+        }
+        
         graph(nextDate);
     }
     
@@ -73,23 +88,100 @@ async function graph(select_day) {
         const newDate = new Date(event.target.value);
         // 시간대 오프셋 조정
         newDate.setMinutes(newDate.getMinutes() + newDate.getTimezoneOffset());
+        
+        // 선택한 날짜가 오늘 이후인지 확인
+        if (newDate > today) {
+            graph(today); // 오늘 이후로는 오늘 날짜로 제한
+            return;
+        }
+        
         graph(newDate);
     }
     
+    // 다음 날짜 버튼 활성화 여부 확인
+    const isNextButtonDisabled = new Date(select_day.getTime()) >= today;
+    // 버튼 스타일 정의
+    const buttonStyle = {
+        padding: '8px 16px',
+        margin: '0 10px',
+        backgroundColor: '#4CAF50',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+    };
+    // 비활성화된 버튼 스타일
+    const disabledButtonStyle = {
+        ...buttonStyle,
+        backgroundColor: '#cccccc',
+        cursor: 'not-allowed',
+        opacity: 0.7,
+        boxShadow: 'none'
+    };
+    // 입력 필드 스타일
+    const inputStyle = {
+        padding: '8px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        fontSize: '14px'
+    };
+    // 통계 컨테이너 스타일
+    const statsContainerStyle = {
+        display: 'flex',
+        justifyContent: 'center',
+        margin: '10px 0',
+        padding: '5px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '8px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    };
+    // 개별 통계 항목 스타일
+    const statItemStyle = {
+        margin: '0 15px',
+        padding: '8px 15px',
+        borderRadius: '20px',
+        fontWeight: 'bold',
+        display: 'inline-block'
+    };
+    // 색상이 다른 통계 스타일
+    const totalStatStyle = {
+        ...statItemStyle,
+        backgroundColor: '#e8f5e9',
+        color: '#2e7d32'
+    };
+    const inStatStyle = {
+        ...statItemStyle,
+        backgroundColor: '#e3f2fd',
+        color: '#1565c0'
+    };
+    const outStatStyle = {
+        ...statItemStyle,
+        backgroundColor: '#ffebee',
+        color: '#c62828'
+    };
+    
     root.render([
         React.createElement("div", null, [
-            React.createElement("button", { onClick: prevDay }, "prev day"),
+            React.createElement("button", { onClick: prevDay,style: buttonStyle }, "prev day"),
             React.createElement("input", {
                 type: "date",
                 value: dateValue,
-                onChange: handleDateChange
+                onChange: handleDateChange,
+                max: formatDateForInput(today), // 오늘 날짜를 최대값으로 설정
+                style: inputStyle
             }),
-            React.createElement("button", { onClick: nextDay }, "next day")
+            React.createElement("button", { 
+                onClick: nextDay,
+                disabled: isNextButtonDisabled, // 오늘 날짜면 비활성화
+                style: isNextButtonDisabled ? disabledButtonStyle : buttonStyle
+            }, "next day")
         ]),
-        React.createElement("div", null, [
-            React.createElement("span", null, "total:" + data_sum.sum),
-            React.createElement("span", null, ", in:" + data_sum.in),
-            React.createElement("span", null, ", out:" + data_sum.out)
+        React.createElement("div", { style: statsContainerStyle }, [
+            React.createElement("span", { style: totalStatStyle }, "합계: " + data_sum.sum),
+            React.createElement("span", { style: inStatStyle }, "입: " + data_sum.in),
+            React.createElement("span", { style: outStatStyle }, "출: " + data_sum.out)
         ]),
         React.createElement(EChartsComponent, { option }, null)
     ]);
