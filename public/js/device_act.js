@@ -21,7 +21,7 @@ function EChartsComponent() {
       const myChart = echarts.init(chartDom);
 
       const option = {
-        title: {text: 'Step Line'},
+        title: {text: '🐝'},
         tooltip: {trigger: 'axis'},
         legend: {data: ['Total', 'Bee-In', 'Bee-Out']},
         grid: {left:'3%',right:'4%',bottom:'3%',containLabel: true},
