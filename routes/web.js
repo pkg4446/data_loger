@@ -53,8 +53,9 @@ router.get('/list', async function(req, res) {
 
 router.get('/act/:id', async function(req, res) {
     const css = html.css("common")+html.css("user");
+    const cdn = html.cdn("https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js");
     const js  = html.js("fetch")+html.js("login_text")+html.js("device_act");
-    const web_page = await html.page("common",css,js);
+    const web_page = await html.page("common",css,cdn+js);
     res.status(201).send(web_page);
 });
 

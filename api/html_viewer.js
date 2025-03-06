@@ -24,4 +24,9 @@ module.exports = {
         const response = '<script src="/public/js/'+JS+'.js"></script>';
         return response;
     },
+
+    cdn:   function(JS){ 
+        const response = '<script src="'+JS+'"></script>';
+        return response;
+    },
 }
