@@ -1,0 +1,57 @@
+.dashboard {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.date-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.date-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.search-btn {
+    background-color: #e24aa8;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-type1 { background-color: #5470C6;}
+.btn-type2 { background-color: #91CC75;}
+.btn-type3 { background-color: #FAC858;}
+.btn-type4 { background-color: #EE6666;}
+.btn-type5 { background-color: #7ED3F4;}
+
+.search-btn:hover {
+    background-color: #357abd;
+}
+
+.graph-container {
+    width:  100%;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.graph {
+    height: 300px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 10px;
+    position: relative;
+}

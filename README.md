@@ -1,2 +1,2 @@
 # data_loger
-데이터로거_base
+데이터로거
