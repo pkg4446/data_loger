@@ -46,6 +46,19 @@ router.post('/info', async function(req, res) {
     res.status(status_code).send(response);
 });
 
+router.post('/info_modify', async function(req, res) {
+    let status_code  = 400;
+    const user_data = req.body;
+    if(user_data.id!=undefined&&user_data.token!=undefined, user_data.info){
+        const path_user = path_data.user()+"/"+user_data.id;
+        if(await login_check.user(user_data.token,user_data.id)){
+            status_code = 200;
+            await file_system.fileMK(path_user,JSON.stringify(user_data.info),"info.json");
+        }
+    }
+    res.status(status_code).send();
+});
+
 router.post('/join', async function(req, res) {
     let status_code = 400;
     const join_data = req.body;

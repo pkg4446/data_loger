@@ -38,7 +38,7 @@ router.get('/join', async function(req, res) {
 });
 
 router.get('/info', async function(req, res) {
-    const css = html.css("common");
+    const css = html.css("common")+html.css("info");
     const js  = html.js("fetch")+html.js("login_text")+html.js("info");
     const web_page = await html.page("common",css,js);
     res.status(201).send(web_page);
