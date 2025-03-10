@@ -1,0 +1,43 @@
+.container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+.panel {
+    background-color: #5f9e6e;
+    padding: 15px;
+    border-radius: 10px;
+}
+.input-group {
+    margin-bottom: 10px;
+}
+input[type="number"]{
+    width: 60px;
+    text-align: right;
+}
+button {
+    background-color: #3c6e51;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* 미디어 쿼리를 사용한 반응형 디자인 */
+@media (min-width: 600px) {
+    .container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (min-width: 1200px) {
+    .container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* 마지막 항목이 홀수 번째일 경우 전체 폭 차지 */
+.panel:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}

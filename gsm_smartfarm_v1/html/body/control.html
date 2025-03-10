@@ -1,0 +1,87 @@
+<main>
+    <div class="container">
+        <div class="panel">
+            <h2>관수 <button onclick="sendData('irrigation')">관수 데이터 전송</button></h2>
+            <div class="input-group">
+                <label>물💧 : </label>
+                <label>on:</label>
+                <input type="number" id="water-run" min="0" max="255"> 초 /
+                <label>off:</label>
+                <input type="number" id="water-stp" min="0" max="255"> 분
+            </div>
+            <div class="input-group">
+                <label>양액 : </label>
+                <label>on:</label>
+                <input type="number" id="nutrient-run" min="0" max="255"> 초 /
+                <label>off:</label>
+                <input type="number" id="nutrient-stp" min="0" max="255"> 분
+            </div>
+        </div>
+        <div class="panel">
+            <h2>조명 <button onclick="sendData('lighting')">조명 데이터 전송</button></h2>
+            <div class="input-group">
+                <label>A: </label>
+                <label>On:</label>
+                <input type="number" id="light-a-run">시 ~
+                <label>Off:</label>
+                <input type="number" id="light-a-stp">시
+            </div>
+            <div class="input-group">
+                <label>B: </label>
+                <label>On:</label>
+                <input type="number" id="light-b-run">시 ~
+                <label>Off:</label>
+                <input type="number" id="light-b-stp">시
+            </div>
+            <div class="input-group">
+                <label>C: </label>
+                <label>On:</label>
+                <input type="number" id="light-c-run">시 ~
+                <label>Off:</label>
+                <input type="number" id="light-c-stp">시
+            </div>
+            <div class="input-group">
+                <label>D: </label>
+                <label>On:</label>
+                <input type="number" id="light-d-run">시 ~
+                <label>Off:</label>
+                <input type="number" id="light-d-stp">시
+            </div>
+        </div>
+        <div class="panel">
+            <h2>냉난방 <button onclick="sendData('temperature')">냉난방 데이터 전송</button></h2>
+            <div class="input-group">
+                <label>목표 온도: </label>
+                <input type="number" id="target-temp" min="-20" max="40"> °C
+            </div>
+            <div class="input-group">
+                <label>허용 오차: </label>
+                <input type="number" id="temp-tolerance" min="0" max="10"> °C
+            </div>
+        </div>
+        <div class="panel">
+            <h2>공조 <button onclick="sendData('airConditioning')">공조 데이터 전송</button></h2>
+            <div class="input-group">
+                <label>내부 순환: </label>
+                <label>On:</label>
+                <input type="number" id="internal-run" min="0" max="255"> 초 /
+                <label>Off:</label>
+                <input type="number" id="internal-stp" min="0" max="255"> 분
+            </div>
+            <div class="input-group">
+                <label>외부 환기: </label>
+                <label>On:</label>
+                <input type="number" id="external-run" min="0" max="255"> 초 /
+                <label>Off:</label>
+                <input type="number" id="external-stp" min="0" max="255"> 분
+            </div>
+        </div>
+        <div class="panel">
+            <h2>하우스 개폐
+                <button onclick="sendData('houseControl', 'open')">열기</button>
+                <button onclick="sendData('houseControl', 'close')">닫기</button>
+            </h2>
+        </div>
+    </div>
+    <br><br><br>
+</main>
