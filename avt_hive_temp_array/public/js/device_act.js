@@ -22,7 +22,7 @@ async function graph(select_day) {
     };
     
     const root = ReactDOM.createRoot(document.getElementById("root"));
-    const response = await(await fetchData("device/log", sendData)).json();
+    const response = await(await fetchData("reqest/log", sendData)).json();
     
     const option = {
         title: {text:'🐝'},
