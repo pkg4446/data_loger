@@ -47,7 +47,7 @@ async function page_init() {
             React.createElement("button",{className:"submit-button"},"등록"),
         ])
     ];
-    const response = await(await fetchData("device/able",{
+    const response = await(await fetchData("request/able",{
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token')
     })).json();
@@ -90,7 +90,7 @@ function DeviceList({initialList,type}) {
                 input:  'text',
             }).then((result)=>{
                 if(result.isConfirmed && result.value.length > 0){
-                    fetchData("device/connect",{
+                    fetchData("request/connect",{
                         id:     localStorage.getItem('user'),
                         token:  localStorage.getItem('token'),
                         dvid:   item,
