@@ -1,0 +1,48 @@
+.title-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 10px 0px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.auto-resize-textarea {
+    min-height: 50px;
+    
+    width: 100%;
+    padding: 10px 0px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    
+    box-sizing: border-box;
+    resize: none; /* 수동 리사이즈 비활성화 */
+}
+
+.submit-button {
+    width: 100%;
+    padding: 14px;
+    background-color: #ff206b;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+    background-color: #b40027;
+}
+
+.submit-container {
+    padding: 30px 10px;
+}

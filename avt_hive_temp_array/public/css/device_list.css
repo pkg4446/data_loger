@@ -1,0 +1,39 @@
+.device-table {
+    margin: auto;
+    margin-top:     10px;
+    margin-bottom:  10px;
+    background-color: #f9e076;
+    border: 6px solid #8B4513;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.device-header {
+    cursor: pointer;
+    background-color: #FFD700;
+    color: #8B4513;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 3px solid #8B4513;
+}
+.device-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 2px dotted #8B4513;
+}
+.device-row:last-child {
+    border-bottom: none;
+}
+.device-row:nth-child(even) {
+    background-color: #ffebc2;
+}
+.device-label {
+    color: #8B4513;
+    font-weight: bold;
+}
+.device-value {
+    color: #2C1810;
+    font-family: 'Courier New', monospace;
+}
