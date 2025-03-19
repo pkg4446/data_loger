@@ -21,13 +21,10 @@ module.exports = {
         return response;
     },
 
-    connect: async function(user, dvid, type, name){
+    connect: async function(user, type, dvid, name){
         let response = 401;
         const path_user   = path_data.user()+"/"+user;
         const path_device = path_data.device(type)+"/"+dvid;
-
-        console.log(path_device);
-
         if(await file_system.check(path_user) && await file_system.check(path_device)){
             if(await file_system.check(path_device+"/owner.txt")){
                 response = 409;

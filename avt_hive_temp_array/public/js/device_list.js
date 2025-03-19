@@ -6,7 +6,7 @@ async function equipment() {
     };
     const root  = ReactDOM.createRoot(document.getElementById("root"));
 
-    const response = await fetchData("device/list",sendData);
+    const response = await fetchData("request/list",sendData);
     const device_list = (await response.text()).split('\r\n');
     
     const devices = {act:[], hive:[]};
@@ -15,29 +15,29 @@ async function equipment() {
         const status = device.split(',');
         if(status[1] == "hive"){
             console.log(status);
-        }else if(status[1] == "act"){
-            sendData.type = "act";
+        }else if(status[1] == "array"){
+            sendData.type = "array";
             sendData.dvid = status[0];
-            const last_data = await(await fetchData("device/last",sendData)).json();
+            // const last_data = await(await fetchData("request/last",sendData)).json();
             devices.act.push(
                 React.createElement("div",{className:"device-table"},[
-                    React.createElement("div",{className:"device-header",onClick:()=>{location.href="/web/act/"+status[0]}},status[2]+" 🐝 출입기록"),
+                    React.createElement("div",{className:"device-header",onClick:()=>{location.href="/web/act/"+status[0]}},status[2]),
                     React.createElement("div",{className:"device-row"},[
                         React.createElement("div",{className:"device-label"},"ID"),   //device name
                         React.createElement("div",{className:"device-value"},status[0].replaceAll("_",":"))  //device mac address
                     ]),
-                    React.createElement("div",{className:"device-row"},[
-                        React.createElement("div",{className:"device-label"},"total"),
-                        React.createElement("div",{className:"device-value"},last_data.sum),
-                    ]),
-                    React.createElement("div",{className:"device-row"},[
-                        React.createElement("div",{className:"device-label"},"in"),
-                        React.createElement("div",{className:"device-value"},last_data.in),
-                    ]),
-                    React.createElement("div",{className:"device-row"},[
-                        React.createElement("div",{className:"device-label"},"out"),
-                        React.createElement("div",{className:"device-value"},last_data.out),
-                    ]),
+                    // React.createElement("div",{className:"device-row"},[
+                    //     React.createElement("div",{className:"device-label"},"total"),
+                    //     React.createElement("div",{className:"device-value"},last_data.sum),
+                    // ]),
+                    // React.createElement("div",{className:"device-row"},[
+                    //     React.createElement("div",{className:"device-label"},"in"),
+                    //     React.createElement("div",{className:"device-value"},last_data.in),
+                    // ]),
+                    // React.createElement("div",{className:"device-row"},[
+                    //     React.createElement("div",{className:"device-label"},"out"),
+                    //     React.createElement("div",{className:"device-value"},last_data.out),
+                    // ]),
                 ])
             );
         }

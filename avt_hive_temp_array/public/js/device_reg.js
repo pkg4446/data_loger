@@ -17,37 +17,28 @@ async function page_init() {
     const handleSubmit = (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
-        const data = {
-            device_type: formData.get("device_type"),
-            device: formData.get("device"),
-            device_name: formData.get("device_name"),
-        };
-        alert("Form Data: " + JSON.stringify(data));
-        console.log("Form Data:", data);
-        // 여기서 데이터를 서버로 보내는 요청 코드를 추가하세요.
+        device_reg(formData.get("device_type"),formData.get("device"),formData.get("device_name"))
     }
 
     let elemets = [
         React.createElement("h2",null,"장비등록"),
         React.createElement("form",{id:"userForm", onSubmit: handleSubmit},[
             React.createElement("div",{style:data_row},[
-                React.createElement("label",{style:cell, htmlFor:"device"},"벌통"),
-                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"hive", defaultChecked:true}),
-                React.createElement("label",{style:cell, htmlFor:"device"},"활동감지"),
-                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"act"}),
+                React.createElement("label",{style:cell, htmlFor:"device"},"온도센서"),
+                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"array", defaultChecked:true}),
             ]),
             React.createElement("div",{className:"input-group"},[
                 React.createElement("label",{htmlFor:"device"},"장비ID"),
-                React.createElement("input",{type:"text", className:"input-field", id:"device", required:true},null),
+                React.createElement("input",{type:"text", className:"input-field", name:"device", required:true},null),
             ]),
             React.createElement("div",{className:"input-group"},[
                 React.createElement("label",{htmlFor:"device_name"},"장비 이름"),
-                React.createElement("input",{type:"text", className:"input-field", id:"device_name", required:true},null),
+                React.createElement("input",{type:"text", className:"input-field", name:"device_name", required:true},null),
             ]),
             React.createElement("button",{className:"submit-button"},"등록"),
         ])
     ];
-    const response = await(await fetchData("device/able",{
+    const response = await(await fetchData("request/able",{
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token')
     })).json();
@@ -90,29 +81,36 @@ function DeviceList({initialList,type}) {
                 input:  'text',
             }).then((result)=>{
                 if(result.isConfirmed && result.value.length > 0){
-                    fetchData("device/connect",{
-                        id:     localStorage.getItem('user'),
-                        token:  localStorage.getItem('token'),
-                        dvid:   item,
-                        type:   type,
-                        name:   result.value
-                    })
-                    .then(response =>{
-                        console.log(response);
-                        if(response.status == 200){
-                            Swal.fire({
-                                position: "top",
-                                icon:   "success",
-                                title:  "등록되었습니다.",
-                                showConfirmButton: false,
-                                timer:  1500
-                            }).then(()=>handleRemoveItem(index));
-                        }
+                    device_reg(item,type,result.value).then((response)=>{
+                        if(response) handleRemoveItem(index);
                     });
-                }                
+                }
             })
             
         }}, item)
     )
   );
+}
+
+async function device_reg(dvid,type,name) {
+    const response = await fetchData("request/connect",{
+                        id:     localStorage.getItem('user'),
+                        token:  localStorage.getItem('token'),
+                        dvid:   dvid,
+                        type:   type,
+                        name:   name
+                    });
+    console.log(response);
+    if(response.status == 200){
+        Swal.fire({
+            position: "top",
+            icon:   "success",
+            title:  "등록되었습니다.",
+            showConfirmButton: false,
+            timer:  1500
+        });
+        return true;
+    }else{
+        return false;
+    }
 }
