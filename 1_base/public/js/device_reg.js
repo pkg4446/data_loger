@@ -17,14 +17,7 @@ async function page_init() {
     const handleSubmit = (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
-        const data = {
-            device_type: formData.get("device_type"),
-            device: formData.get("device"),
-            device_name: formData.get("device_name"),
-        };
-        alert("Form Data: " + JSON.stringify(data));
-        console.log("Form Data:", data);
-        // 여기서 데이터를 서버로 보내는 요청 코드를 추가하세요.
+        device_reg(formData.get("device_type"),formData.get("device"),formData.get("device_name"))
     }
 
     let elemets = [
@@ -96,23 +89,39 @@ function DeviceList({initialList,type}) {
                         dvid:   item,
                         type:   type,
                         name:   result.value
-                    })
-                    .then(response =>{
-                        console.log(response);
-                        if(response.status == 200){
-                            Swal.fire({
-                                position: "top",
-                                icon:   "success",
-                                title:  "등록되었습니다.",
-                                showConfirmButton: false,
-                                timer:  1500
-                            }).then(()=>handleRemoveItem(index));
+                    }).then((result)=>{
+                        if(result.isConfirmed && result.value.length > 0){
+                            device_reg(item,type,result.value).then((response)=>{
+                                if(response) handleRemoveItem(index);
+                            });
                         }
-                    });
+                    })
                 }                
             })
-            
         }}, item)
     )
   );
+}
+
+async function device_reg(dvid,type,name) {
+    const response = await fetchData("request/connect",{
+                        id:     localStorage.getItem('user'),
+                        token:  localStorage.getItem('token'),
+                        dvid:   dvid,
+                        type:   type,
+                        name:   name
+                    });
+    console.log(response);
+    if(response.status == 200){
+        Swal.fire({
+            position: "top",
+            icon:   "success",
+            title:  "등록되었습니다.",
+            showConfirmButton: false,
+            timer:  1500
+        });
+        return true;
+    }else{
+        return false;
+    }
 }
