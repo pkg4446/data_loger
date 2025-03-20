@@ -86,13 +86,12 @@ function DeviceList({initialList,type}) {
                     });
                 }
             })
-            
         }}, item)
     )
   );
 }
 
-async function device_reg(dvid,type,name) {
+async function device_reg(type,dvid,name) {
     const response = await fetchData("request/connect",{
                         id:     localStorage.getItem('user'),
                         token:  localStorage.getItem('token'),

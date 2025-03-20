@@ -51,10 +51,10 @@ module.exports = {
         return response;
     },
 
-    disconnect: async function(user, dvid){
+    disconnect: async function(user, type, dvid){
         let response = 401;
         const path_user   = path_data.user()+"/"+user;
-        const path_device = path_data.device()+"/"+dvid;
+        const path_device = path_data.device(type)+"/"+dvid;
 
         if(await file_system.check(path_device+"/owner.txt")){
             response = 200;
@@ -65,10 +65,10 @@ module.exports = {
             response = 200;
             //여기서 관리자모드 변경추가
             let new_list = "";
-            const list  = await file_system.fileRead(path_user,"device.csv").split("\r\n");
+            const list  = (await file_system.fileRead(path_user,"device.csv")).split("\r\n");
             let line_shift = false;
             for (let index = 0; index < list.length; index++) {
-                if(list[index].split(",")[0] != device_id){
+                if(list[index].split(",")[0] != dvid){
                     if(line_shift) new_list += "\r\n";
                     else line_shift = true;
                     new_list += list[index];
