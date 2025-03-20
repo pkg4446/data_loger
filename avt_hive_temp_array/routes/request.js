@@ -128,7 +128,6 @@ router.post('/device_rename', async function(req, res) {
         const   path_user   = path_data.user()+"/"+user_data.id;
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
-            console.log(await file_system.fileRead(path_user,"device.csv"));
             const list   = (await file_system.fileRead(path_user,"device.csv")).split("\r\n");
             let new_list = "";
             for (let index = 0; index < list.length; index++) {
@@ -140,6 +139,23 @@ router.post('/device_rename', async function(req, res) {
                 }
             }
             file_system.fileMK(path_user,new_list,"device.csv");
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send();
+});
+
+router.post('/arrange', async function(req, res) {
+    let status_code = 400;
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.data!=undefined){
+        const   path_user   = path_data.user()+"/"+user_data.id;
+        if(await login_check.user(user_data.token,user_data.id)){
+            status_code = 200;
+            console.log(user_data.data);
+            let new_list = "";
+            // file_system.fileMK(path_user,new_list,"device.csv");
         }else{
             status_code = 401;
         }
