@@ -14,9 +14,7 @@ function EquipmentManager() {
 
     const response = await fetchData("request/list", sendData);
     const device_list = (await response.text()).split('\r\n');
-    
-    console.log(device_list);
-    
+        
     const tempArrayDevices = [];
     const tempHiveDevices = [];
 
@@ -95,7 +93,7 @@ function EquipmentManager() {
   return React.createElement("div", {style: { width: "100%", margin: "auto" }}, [...renderArrayDevices(),
     arrayDevices.length > 0 && React.createElement("div", { 
       className: "device-button", 
-      onClick: () => navigateToArrange("array")
+      // onClick: () => navigateToArrange("array")
     }, "array 순서정렬")
   ]);
 }
@@ -108,9 +106,7 @@ async function device_modify(api, type, dvid, name) {
     dvid: dvid,
     name: name
   });
-  
-  console.log(response);
-  
+    
   if (response.status == 200) {
     Swal.fire({
       position: "top",
