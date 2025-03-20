@@ -26,18 +26,10 @@ async function equipment() {
                         React.createElement("div",{className:"device-label"},"ID"),   //device name
                         React.createElement("div",{className:"device-value"},status[0].replaceAll("_",":"))  //device mac address
                     ]),
-                    // React.createElement("div",{className:"device-row"},[
-                    //     React.createElement("div",{className:"device-label"},"total"),
-                    //     React.createElement("div",{className:"device-value"},last_data.sum),
-                    // ]),
-                    // React.createElement("div",{className:"device-row"},[
-                    //     React.createElement("div",{className:"device-label"},"in"),
-                    //     React.createElement("div",{className:"device-value"},last_data.in),
-                    // ]),
-                    // React.createElement("div",{className:"device-row"},[
-                    //     React.createElement("div",{className:"device-label"},"out"),
-                    //     React.createElement("div",{className:"device-value"},last_data.out),
-                    // ]),
+                    React.createElement("div",{className:"device-row"},[
+                        React.createElement("div",{className:"device-button"},"장비삭제"),
+                        React.createElement("div",{className:"device-button"},"이름변경")
+                    ])
                 ])
             );
         }

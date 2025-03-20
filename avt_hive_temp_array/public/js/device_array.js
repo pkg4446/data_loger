@@ -112,7 +112,6 @@ async function getdata(date_now){
     };
 
     const response = await(await fetchData("request/log", sendData)).json();
-    console.log(response);
 
     const date_data = ""+date_now.getFullYear()+date_now.getMonth()+date_now.getDate();
     if(temperatures[date_data] === undefined) temperatures[date_data] = [];
@@ -134,8 +133,6 @@ async function getdata(date_now){
             }
             let temperature = [];
             
-            console.log("rawdata",rawdata);
-
             for (let row = 0; row < rawdata[0].length; row++) {
                 let temperature_array = [];
                 for (let column = rawdata.length-1; column >= 0; column--) {
@@ -145,7 +142,6 @@ async function getdata(date_now){
                 temperature.push(temperature_array);
             }
             temperatures[date_data].push(temperature);
-            console.log("2",temperatures[date_data]);
         }
     }else{
         temperatures[date_data]    = [[]];
