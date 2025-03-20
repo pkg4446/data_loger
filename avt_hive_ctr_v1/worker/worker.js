@@ -3,7 +3,7 @@ const path = require('path');
 
 function runWorker(worker_path,worker_file,data) {
     return new Promise((resolve, reject) => {
-        const worker = new Worker(path.join(__dirname+worker_path, worker_file+".js"));
+        const worker = new Worker(path.join(__dirname, worker_path, worker_file + ".js"));
         worker.on('message', (message) => {
             resolve(message);
             // 작업 완료 후 워커 종료
