@@ -6,12 +6,13 @@ const router        = express.Router();
 
 router.post('/log', async function(req, res) {
     let status = 404;
-    if(req.body.DVC!=undefined){
+    console.log(req.body);
+    if(req.body.dvid!=undefined){
         status = 200;
-        req.body.DVC = req.body.DVC.replaceAll(":","_");
+        req.body.dvid = req.body.dvid.replaceAll(":","_");
 
         const log_date = new Date();
-        const path_device = path_data.device("array")+"/"+req.body.DVC;
+        const path_device = path_data.device("array")+"/"+req.body.dvid;
         const device_ip   = requestIp.getClientIp(req);
         let path_log = path_device+"/"+log_date.getFullYear()+"/";
         if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
