@@ -25,8 +25,9 @@ router.post('/log', async function(req, res) {
         if(log_date.getDate()<10) filename += "0";
         filename += log_date.getDate();
         req.body.DATA.date = log_date;
-
         const file_content = JSON.stringify(req.body.DATA);
+        
+        if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
         await file_system.fileMK(path_device,file_content,"lastest.json");
         if(await file_system.check(path_log+"/"+filename+".json")){
             await file_system.fileADD(path_log,","+file_content,filename+".json");
