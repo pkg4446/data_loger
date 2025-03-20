@@ -55,7 +55,7 @@ section {
 }
 
 footer {
-  background-color: #ffb347;
+  background-color: #ffce5d;
   color: white;
   text-align: center;
   padding: 0;
@@ -127,7 +127,7 @@ text-align: center;
   z-index: 5;
 
   background-color: #7F5923;
-  background-image: linear-gradient(0deg, #ffb347 15%, #ffd970 85%);
+  background-image: linear-gradient(0deg, #ffce5d 15%, #ffd970 85%);
 
   padding-top: 60px;
   transition: 0.4s;
