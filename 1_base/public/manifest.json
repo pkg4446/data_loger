@@ -1,34 +1,34 @@
 {
-    "name": "SmartHive",
-    "short_name": "SH",
-    "id":"smarthive",
-    "start_url": "/",
-    "scope": "/",
-    "display": "fullscreen",
-    "orientation": "portrait-primary",
-    "background_color": "#ffffff",
-    "theme_color": "#3f51b5",
-    "description": "for dating.",
-    "dir": "ltr",
-    "lang": "ko-KR",
-    "icons": [
-      {
-        "src": "/public/favicon.ico",
-        "sizes": "16x16",
-        "type": "image/x-icon"
-      },
-      {
-        "src": "/public/icon_30.png",
-        "sizes": "30x30",
-        "type": "image/png"
-      },{
-        "src": "/public/icon_60.png",
-        "sizes": "60x60",
-        "type": "image/png"
-      },{
-        "src": "/public/icon_90.png",
-        "sizes": "90x90",
-        "type": "image/png"
-      }
-    ]
-  }
+  "name": "WebApp",
+  "short_name": "WA",
+  "id":"WebApp",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#3f51b5",
+  "description": "get data.",
+  "dir": "ltr",
+  "lang": "ko-KR",
+  "icons": [
+    {
+      "src": "/public/favicon.ico",
+      "sizes": "16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/public/icon_30.png",
+      "sizes": "30x30",
+      "type": "image/png"
+    },{
+      "src": "/public/icon_60.png",
+      "sizes": "60x60",
+      "type": "image/png"
+    },{
+      "src": "/public/icon_90.png",
+      "sizes": "90x90",
+      "type": "image/png"
+    }
+  ]
+}
