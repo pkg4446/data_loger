@@ -2,7 +2,7 @@ const express   = require('express');
 const router    = express.Router();
 
 const web       = require('./web');
-const log       = require('./log');
+const device    = require('./device');
 const admin     = require('./admin');
 const user      = require('./user');
 const request    = require('./request');
@@ -17,7 +17,7 @@ router.route("/")
         res.status(201).send(response);
     });
 router.use('/web',web);
-router.use('/log',log);
+router.use('/log',device);
 router.use('/admin',admin);
 router.use('/user',user);
 router.use('/request',request);

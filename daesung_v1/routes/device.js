@@ -4,14 +4,14 @@ const file_system   = require('../api/fs_core');
 const path_data     = require('../api/fs_path');
 const router        = express.Router();
 
-router.post('/act', async function(req, res) {
+router.post('/log', async function(req, res) {
     let status = 404;
     if(req.body.DVC!=undefined){
         status = 200;
         req.body.DVC = req.body.DVC.replaceAll(":","_");
 
         const log_date = new Date();
-        const path_device = path_data.device("act")+"/"+req.body.DVC;
+        const path_device = path_data.device("array")+"/"+req.body.DVC;
         const device_ip   = requestIp.getClientIp(req);
         let path_log = path_device+"/"+log_date.getFullYear()+"/";
         if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
@@ -25,11 +25,12 @@ router.post('/act', async function(req, res) {
         if(log_date.getDate()<10) filename += "0";
         filename += log_date.getDate();
         req.body.DATA.date = log_date;
-
         const file_content = JSON.stringify(req.body.DATA);
+        
+        if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
         await file_system.fileMK(path_device,file_content,"lastest.json");
         if(await file_system.check(path_log+"/"+filename+".json")){
-            await file_system.fileADD(path_log,","+file_content,filename+".json");
+            await file_system.fileADD(path_log,",\r\n"+file_content,filename+".json");
         }else{
             await file_system.fileMK(path_log,"["+file_content,filename+".json");
         }
