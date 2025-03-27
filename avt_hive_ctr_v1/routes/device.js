@@ -27,4 +27,9 @@ router.post('/hive_set', async function(req, res) {
     res.status(201).send("ack");
 });
 
+router.post('/pump', async function(req, res) {    
+    console.log(req.body);    
+    res.status(201).send();
+});
+
 module.exports = router;
