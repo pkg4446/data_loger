@@ -42,9 +42,8 @@ router.post('/hub', async function(req, res) {
     let status = 400;
     let response = "";
     if(req.body.HUB!=undefined){
-        console.log("data");
+        console.log("data received: HUB");
         status = 200;
-        response = req.body.DVC;
         req.body.HUB = req.body.HUB.replaceAll(":","_");
 
         const log_date = new Date();
@@ -74,8 +73,37 @@ router.post('/hub', async function(req, res) {
             }else{
                 await file_system.fileMK(path_log,"["+file_content,filename+".json");
             }
-        }else{
 
+            if(await file_system.check(path_device + "/config.json")){
+                const device_config = JSON.parse(await file_system.fileRead(path_device,"config.json"));
+                if(device_config.ex_goal != undefined){
+                    if(device_config.ex_run  == undefined) device_config.ex_run = 0;
+                    if(device_config.ex_goal != device_config.goal || device_config.ex_run != device_config.run)
+                    response = req.body.DVC+" WEB "+device_config.ex_goal+" "+device_config.ex_run;
+                }
+            }
+        }else if(req.body.API == "mod"){
+            console.log(req.body);
+            if(await file_system.check(path_device + "/config.json")){
+                const device_config = JSON.parse(await file_system.fileRead(path_device,"config.json"));
+                device_config.goal  = req.body.DATA.goal;
+                device_config.run   = req.body.DATA.run;
+                await file_system.fileMK(path_device,JSON.stringify(device_config),"config.json");
+            }else{
+                await file_system.fileMK(path_device,JSON.stringify(req.body.DATA),"config.json");
+            }
+        }else if(req.body.API == "set"){
+            console.log(req.body);
+            if(await file_system.check(path_device + "/config.json")){
+                const device_config = JSON.parse(await file_system.fileRead(path_device,"config.json"));
+                device_config.ex_goal  = req.body.DATA.goal;
+                device_config.goal  = req.body.DATA.goal;
+                device_config.ex_run   = req.body.DATA.run;
+                device_config.run   = req.body.DATA.run;
+                await file_system.fileMK(path_device,JSON.stringify(device_config),"config.json");
+            }else{
+                await file_system.fileMK(path_device,JSON.stringify(req.body.DATA),"config.json");
+            }
         }
     }
     res.status(status).send(response);
