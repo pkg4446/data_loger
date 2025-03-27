@@ -38,4 +38,47 @@ router.post('/act', async function(req, res) {
     res.status(status).send();
 });
 
+router.post('/hub', async function(req, res) {
+    let status = 400;
+    let response = "";
+    if(req.body.HUB!=undefined){
+        console.log("data");
+        status = 200;
+        response = req.body.DVC;
+        req.body.HUB = req.body.HUB.replaceAll(":","_");
+
+        const log_date = new Date();
+        const path_hub = path_data.device("act")+"/"+req.body.HUB;
+        const path_device = path_hub+"/"+req.body.TYPE+"/"+req.body.DVC;
+        const device_ip   = requestIp.getClientIp(req);
+        let path_log = path_device+"/"+log_date.getFullYear()+"/";
+        if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
+
+        if(await file_system.check(path_hub+"/ip.txt")){
+            if(await file_system.fileRead(path_hub,"ip.txt") != device_ip) await file_system.fileMK(path_hub,device_ip,"ip.txt");
+        }else await file_system.fileMK(path_hub,device_ip,"ip.txt");
+
+        if(req.body.API == "log"){
+            if(log_date.getMonth()<10) path_log += "0";
+            path_log += log_date.getMonth();
+            let filename = "";
+            if(log_date.getDate()<10) filename += "0";
+            filename += log_date.getDate();
+            req.body.DATA.date = log_date;
+            const file_content = JSON.stringify(req.body.DATA);
+
+            if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
+            await file_system.fileMK(path_device,file_content,"lastest.json");
+            if(await file_system.check(path_log+"/"+filename+".json")){
+                await file_system.fileADD(path_log,",\r\n"+file_content,filename+".json");
+            }else{
+                await file_system.fileMK(path_log,"["+file_content,filename+".json");
+            }
+        }else{
+
+        }
+    }
+    res.status(status).send(response);
+});
+
 module.exports = router;
