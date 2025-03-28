@@ -28,8 +28,6 @@ router.post('/hive_set', async function(req, res) {
 });
 
 router.post('/pump', async function(req, res) {
-    console.log("Pump data: ",req.body);
-
     const path_pump = path_data.pump()+"/"+req.body.DVC;
     if(!file_system.check(path_pump)) memory_admin.data_renewal(false);
     const requestIp = require('request-ip');
@@ -39,8 +37,6 @@ router.post('/pump', async function(req, res) {
 });
 
 router.post('/pump_set', async function(req, res) {
-    console.log("Pump set: ",req.body);
-
     const path_device  = path_data.pump()+"/"+req.body.DVC;
     let   file_content = req.body.SET;
     file_system.fileMK(path_device,file_content,"config_set.csv");
