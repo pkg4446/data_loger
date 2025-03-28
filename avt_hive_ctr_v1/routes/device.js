@@ -8,9 +8,9 @@ const router        = express.Router();
 router.post('/log', async function(req, res) {    
     const path_device = path_data.device()+"/"+req.body.DVC;
     if(!file_system.check(path_device)) memory_admin.data_renewal(false);
-    const requestIp   = require('request-ip');
-    req.body.IP  = requestIp.getClientIp(req);
-    response     = await file_worker.device_log(req.body);
+    const requestIp = require('request-ip');
+    req.body.IP     = requestIp.getClientIp(req);
+    const response  = await file_worker.device_log(req.body);
     res.status(201).send(response);
 });
 
@@ -27,9 +27,30 @@ router.post('/hive_set', async function(req, res) {
     res.status(201).send("ack");
 });
 
-router.post('/pump', async function(req, res) {    
-    console.log(req.body);    
-    res.status(201).send();
+router.post('/pump', async function(req, res) {
+    console.log("Pump data: ",req.body);
+
+    const path_pump = path_data.pump()+"/"+req.body.DVC;
+    if(!file_system.check(path_pump)) memory_admin.data_renewal(false);
+    const requestIp = require('request-ip');
+    req.body.IP     = requestIp.getClientIp(req);
+    const response  = await file_worker.device_pump(req.body);
+    res.status(201).send(response);
+});
+
+router.post('/pump_set', async function(req, res) {
+    console.log("Pump set: ",req.body);
+
+    const path_device  = path_data.pump()+"/"+req.body.DVC;
+    let   file_content = req.body.SET;
+    file_system.fileMK(path_device,file_content,"config_set.csv");
+    file_content += ","+new Date();
+    if(file_system.check(path_device+"/config_set_history.csv")){
+        file_system.fileADD(path_device,"\r\n"+file_content,"config_set_history.csv");
+    }else{
+        file_system.fileMK(path_device,file_content,"config_set_history.csv");
+    }
+    res.status(201).send("ack");
 });
 
 module.exports = router;

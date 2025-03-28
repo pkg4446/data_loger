@@ -8,6 +8,9 @@ module.exports = {
     device : function(){
         return "./data/device";
     },
+    pump : function(){
+        return "./data/pump";
+    },
     firmware : function(){
         return "./data/path_firmware";
     },

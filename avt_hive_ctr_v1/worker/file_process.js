@@ -5,6 +5,9 @@ module.exports = {
     device_log: async function(request){
         return await worker.working(pthe_process,"device_log",request);
     },
+    device_pump: async function(request){
+        return await worker.working(pthe_process,"device_pump",request);
+    },
     data_renewal: async function(){
         return await worker.working(pthe_process,"data_renewal",null);
     },

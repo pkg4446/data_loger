@@ -58,4 +58,8 @@ router.post('/device', async function(req, res) {
     }
 });
 
+router.post('/pump', async function(req, res) {
+    return res.status(204).send("No update required");
+});
+
 module.exports = router;
