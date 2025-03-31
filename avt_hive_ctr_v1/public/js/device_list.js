@@ -339,7 +339,8 @@ function fetch_list_change(device_list) {
 }
 ////-------------------////
 async function fetch_equipment(init) {
-    let HTML_script= "<br>";
+    let HTML_script = "<br>";
+    let pump_list = [];
     // 여기에 실제 서버 URL을 입력하세요
     const today = new Date();
     const post_data = {
@@ -363,17 +364,14 @@ async function fetch_equipment(init) {
         window.location.href = '/web/connect';
     }else{
         const devices = (await pump.text()).split("\r\n");
-        let device_list = [];
+        
         if(init){
             for (let index = 0; index < devices.length; index++) {
                 const device = devices[index].split(",");
-                device_list.push(device);
+                pump_list.push(device);
                 HTML_script+= `<div class="unit-section" id="unit_second_${device[0]}"></div>`;
             }
         }
-        // for (let index = 0; index < device_list.length; index++) {
-        //     getdata(post_data,device_list[index]);
-        // }
     }
 
     const hive = await fetch(window.location.protocol+"//"+window.location.host+"/hive/list", {
@@ -398,6 +396,10 @@ async function fetch_equipment(init) {
         }
         for (let index = 0; index < device_list.length; index++) {
             getdata(post_data,device_list[index]);
+        }
+        for (let index = 0; index < pump_list.length; index++) {
+            console.log(pump_list[index]);
+            // getdata(post_data,pump_list[index]);
         }
     }
 }
