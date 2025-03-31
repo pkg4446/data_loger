@@ -8,8 +8,8 @@ const path_data     = require('./api/path_data');
 
 if(!file_system.check(path_data.common()))   file_system.folderMK(path_data.common());
 if(!file_system.check(path_data.user()))     file_system.folderMK(path_data.user());
-if(!file_system.check(path_data.device()))   file_system.folderMK(path_data.device());
-if(!file_system.check(path_data.pump()))     file_system.folderMK(path_data.pump());
+if(!file_system.check(path_data.device("device"))) file_system.folderMK(path_data.device("device"));
+if(!file_system.check(path_data.device("pump")))   file_system.folderMK(path_data.device("pump"));
 if(!file_system.check(path_data.admin()))    file_system.folderMK(path_data.admin());
 if(!file_system.check(path_data.firmware())) file_system.folderMK(path_data.firmware());
 

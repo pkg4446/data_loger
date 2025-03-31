@@ -5,11 +5,8 @@ module.exports = {
     common : function(){
         return "./data/common";
     },
-    device : function(){
-        return "./data/device";
-    },
-    pump : function(){
-        return "./data/pump";
+    device : function(type){
+        return "./data/"+type;
     },
     firmware : function(){
         return "./data/path_firmware";

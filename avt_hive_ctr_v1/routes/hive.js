@@ -21,7 +21,7 @@ router.post('/connect', async function(req, res) {
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.name!=undefined && user_data.name.length>0){
         user_data.name = user_data.name.replaceAll(' ',"_");
         if(token_check(user_data.token,user_data.id)){
-            status_code = await device.connect(user_data.id,user_data.dvid,user_data.name);
+            status_code = await device.connect(user_data.id,"device",user_data.dvid,user_data.name);
         }else{
             status_code = 401;
         }
@@ -34,7 +34,7 @@ router.post('/disconnect', async function(req, res) {
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined){
         if(token_check(user_data.token,user_data.id)){
-            status_code = await device.disconnect(user_data.id,user_data.dvid);
+            status_code = await device.disconnect(user_data.id,"device",user_data.dvid);
         }else{
             status_code = 401;
         }
@@ -71,7 +71,7 @@ router.post('/heater', async function(req, res) {
     let status_code = 400;
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined){
-        const   path_device = path_data.device()+"/"+user_data.dvid;
+        const   path_device = path_data.device("device")+"/"+user_data.dvid;
         if(token_check(user_data.token,user_data.id)){
             if(file_system.check(path_device)){
                 status_code = 200;
@@ -137,7 +137,7 @@ router.post('/list_able', async function(req, res) {
     let response    = "nodata";
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined){
-        const   path_device = path_data.device();
+        const   path_device = path_data.device("device");
         if(file_system.check(path_device)){
             status_code = 200;
             const requestIp = require('request-ip');
@@ -156,24 +156,24 @@ router.post('/config', async function(req, res) {
     let response    = "nodata";
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.date!=undefined){
-        const   path_device = path_data.device()+"/"+user_data.dvid;
+        const   path_device = path_data.device("device")+"/"+user_data.dvid;
         if(token_check(user_data.token,user_data.id)){
             if(file_system.check(path_device+"/owner.txt")&&(file_system.fileRead(path_device,"owner.txt")==user_data.id)){
                 status_code = 200;
-                if(file_system.check(path_data.device()+"/"+user_data.dvid+"/lastest.json")){
-                    response = file_system.fileRead(path_data.device()+"/"+user_data.dvid,"lastest.json");
+                if(file_system.check(path_data.device("device")+"/"+user_data.dvid+"/lastest.json")){
+                    response = file_system.fileRead(path_data.device("device")+"/"+user_data.dvid,"lastest.json");
                 }else{
                     response = "null";
                 }
                 const response_added = {dv:null,ab:null,th:null};
-                if(file_system.check(path_data.device()+"/"+user_data.dvid+"/device_set.csv")){
-                    response_added.dv = file_system.fileRead(path_data.device()+"/"+user_data.dvid,"device_set.csv").split(",");
+                if(file_system.check(path_data.device("device")+"/"+user_data.dvid+"/device_set.csv")){
+                    response_added.dv = file_system.fileRead(path_data.device("device")+"/"+user_data.dvid,"device_set.csv").split(",");
                 }
-                if(file_system.check(path_data.device()+"/"+user_data.dvid+"/heater_able.csv")){
-                    response_added.ab = file_system.fileRead(path_data.device()+"/"+user_data.dvid,"heater_able.csv");
+                if(file_system.check(path_data.device("device")+"/"+user_data.dvid+"/heater_able.csv")){
+                    response_added.ab = file_system.fileRead(path_data.device("device")+"/"+user_data.dvid,"heater_able.csv");
                 }
-                if(file_system.check(path_data.device()+"/"+user_data.dvid+"/heater_temp.csv")){
-                    response_added.th = file_system.fileRead(path_data.device()+"/"+user_data.dvid,"heater_temp.csv").split(",");
+                if(file_system.check(path_data.device("device")+"/"+user_data.dvid+"/heater_temp.csv")){
+                    response_added.th = file_system.fileRead(path_data.device("device")+"/"+user_data.dvid,"heater_temp.csv").split(",");
                 }
                 response += "\r\n"+JSON.stringify(response_added);
             }else{
@@ -193,14 +193,14 @@ router.post('/log', async function(req, res) {
     let response    = "nodata";
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.date!=undefined){
-        const   path_device = path_data.device()+"/"+user_data.dvid;
+        const   path_device = path_data.device("device")+"/"+user_data.dvid;
         if(token_check(user_data.token,user_data.id)){
             if(file_system.check(path_device+"/owner.txt")&&(file_system.fileRead(path_device,"owner.txt")==user_data.id)){
                 status_code = 200;
                 response    = "ok";
                 for (let index = 1; index < 3; index++) {if(user_data.date[index]<10){user_data.date[index] = "0"+user_data.date[index];}}
-                if(file_system.check(path_data.device()+"/"+user_data.dvid+"/"+user_data.date[0]+"/"+user_data.date[1]+"/"+user_data.date[2]+".json")){
-                    response    = "log\r\n" + file_system.fileRead(path_data.device()+"/"+user_data.dvid+"/"+user_data.date[0]+"/"+user_data.date[1],user_data.date[2]+".json");
+                if(file_system.check(path_data.device("device")+"/"+user_data.dvid+"/"+user_data.date[0]+"/"+user_data.date[1]+"/"+user_data.date[2]+".json")){
+                    response    = "log\r\n" + file_system.fileRead(path_data.device("device")+"/"+user_data.dvid+"/"+user_data.date[0]+"/"+user_data.date[1],user_data.date[2]+".json");
                 }else{
                     response = "null";
                 }

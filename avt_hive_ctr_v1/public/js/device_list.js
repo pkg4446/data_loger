@@ -338,8 +338,8 @@ function fetch_list_change(device_list) {
     });
 }
 ////-------------------////
-function fetch_equipment(init) {
-    const axis_T = document.documentElement.scrollTop;
+async function fetch_equipment(init) {
+    let HTML_script= "<br>";
     // 여기에 실제 서버 URL을 입력하세요
     const today = new Date();
     const post_data = {
@@ -347,44 +347,59 @@ function fetch_equipment(init) {
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token')
     }
-    fetch(window.location.protocol+"//"+window.location.host+"/hive/list", {
+    const pump = await fetch(window.location.protocol+"//"+window.location.host+"/pump/list", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(post_data)
-    })
-    .then(response => {
-        if (response.status==400 || response.status==401) {
-            alert_swal("error",'로그인 정보가 없습니다.');
-            window.location.href = '/web/login';
-        }else if (response.status==403) {
-            alert_swal("error",'등록된 장비가 없습니다.');
-            window.location.href = '/web/connect';
-        }
-        return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
-    })
-    .then(data => {
-        const devices = data.split("\r\n");
+    });
+
+    if (pump.status==400 || pump.status==401) {
+        alert_swal("error",'로그인 정보가 없습니다.');
+        window.location.href = '/web/login';
+    }else if (pump.status==403) {
+        alert_swal("error",'등록된 장비가 없습니다.');
+        window.location.href = '/web/connect';
+    }else{
+        const devices = (await pump.text()).split("\r\n");
         let device_list = [];
-        let HTML_script= "<br>";
-        for (let index = 0; index < devices.length; index++) {
-            const device = devices[index].split(",");
-            device_list.push(device);
-            HTML_script+= `<div class="unit-section" id="unit_second_${device[0]}"></div>`;
-        }
         if(init){
+            for (let index = 0; index < devices.length; index++) {
+                const device = devices[index].split(",");
+                device_list.push(device);
+                HTML_script+= `<div class="unit-section" id="unit_second_${device[0]}"></div>`;
+            }
+        }
+        // for (let index = 0; index < device_list.length; index++) {
+        //     getdata(post_data,device_list[index]);
+        // }
+    }
+
+    const hive = await fetch(window.location.protocol+"//"+window.location.host+"/hive/list", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(post_data)
+    });
+    
+    if (hive.status==200) {
+        const devices = (await hive.text()).split("\r\n");
+        let device_list = [];
+        if(init){
+            for (let index = 0; index < devices.length; index++) {
+                const device = devices[index].split(",");
+                device_list.push(device);
+                HTML_script+= `<div class="unit-section" id="unit_second_${device[0]}"></div>`;
+            }
             HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},${null},${null})>벌통 정렬</div>`;
             document.getElementById('farm_section_device').innerHTML = HTML_script;
         }
         for (let index = 0; index < device_list.length; index++) {
             getdata(post_data,device_list[index]);
         }
-        // window.scrollTo({top:0, left:axis_T, behavior:'auto'});
-    })
-    .catch(error => {
-        console.log(error);
-    });
+    }
 }
 ////-------------------////
 function fetch_user_info() {

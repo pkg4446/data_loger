@@ -6,7 +6,7 @@ const file_worker   = require('../worker/file_process');
 const router        = express.Router();
 
 router.post('/log', async function(req, res) {    
-    const path_device = path_data.device()+"/"+req.body.DVC;
+    const path_device = path_data.device("device")+"/"+req.body.DVC;
     if(!file_system.check(path_device)) memory_admin.data_renewal(false);
     const requestIp = require('request-ip');
     req.body.IP     = requestIp.getClientIp(req);
@@ -15,7 +15,7 @@ router.post('/log', async function(req, res) {
 });
 
 router.post('/hive_set', async function(req, res) {
-    const path_device  = path_data.device()+"/"+req.body.DVC;
+    const path_device  = path_data.device("device")+"/"+req.body.DVC;
     let   file_content = req.body.TMP+","+req.body.RUN;
     file_system.fileMK(path_device,file_content,"device_set.csv");
     file_content += ","+new Date();
@@ -28,7 +28,7 @@ router.post('/hive_set', async function(req, res) {
 });
 
 router.post('/pump', async function(req, res) {
-    const path_pump = path_data.pump()+"/"+req.body.DVC;
+    const path_pump = path_data.device("pump")+"/"+req.body.DVC;
     if(!file_system.check(path_pump)) memory_admin.data_renewal(false);
     const requestIp = require('request-ip');
     req.body.IP     = requestIp.getClientIp(req);
@@ -37,7 +37,7 @@ router.post('/pump', async function(req, res) {
 });
 
 router.post('/pump_set', async function(req, res) {
-    const path_device  = path_data.pump()+"/"+req.body.DVC;
+    const path_device  = path_data.device("pump")+"/"+req.body.DVC;
     let   file_content = req.body.SET;
     file_system.fileMK(path_device,file_content,"config_set.csv");
     file_content += ","+new Date();

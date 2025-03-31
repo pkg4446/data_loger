@@ -3,17 +3,17 @@ const path_data     = require('./path_data');
 const memory_admin  = require('./memory_admin');
 
 module.exports = {
-    connect : async function(user_id,device_id,device_name){
+    connect : async function(user_id,device_type,device_id,device_name){
         let status_code = 400;
         const   path_user   = path_data.user()+"/"+user_id;
-        const   path_device = path_data.device()+"/"+device_id;
+        const   path_device = path_data.device(device_type)+"/"+device_id;
         if(file_system.check(path_user)){
             if(file_system.check(path_device+"/owner.txt")){
                 status_code = 409;
             }else if(file_system.check(path_device)){
                 memory_admin.data_renewal(false);
                 status_code = 200;
-                const file_content = file_system.fileRead(path_user,"device.csv");
+                const file_content = file_system.fileRead(path_user,device_type+".csv");
                 if(file_content){
                     const devices  = file_content.split("\r\n");
                     let device_duplication = false;
@@ -23,9 +23,9 @@ module.exports = {
                             break;
                         }
                     }
-                    if(!device_duplication) file_system.fileADD(path_user,"\r\n"+device_id+","+device_name,"device.csv");
+                    if(!device_duplication) file_system.fileADD(path_user,"\r\n"+device_id+","+device_name,device_type+".csv");
                 }else{
-                    file_system.fileMK(path_user,device_id+","+device_name,"device.csv");
+                    file_system.fileMK(path_user,device_id+","+device_name,device_type+".csv");
                 }
                 file_system.fileMK(path_device,user_id,"owner.txt")
             }else{
@@ -37,16 +37,16 @@ module.exports = {
         return status_code;
     },
 
-    disconnect : async function(user_id,device_id){
+    disconnect : async function(user_id,device_type,device_id){
         let status_code = 200;
         const   path_user   = path_data.user()+"/"+user_id;
-        const   path_device = path_data.device()+"/"+device_id;
+        const   path_device = path_data.device(device_type)+"/"+device_id;
         if(file_system.check(path_user)){
             memory_admin.data_renewal(false);
             if(file_system.check(path_device+"/owner.txt")) file_system.fileDel(path_device,"owner.txt");
             let new_list = "";
-            if(file_system.check(path_user+"/device.csv")){
-                const list     = file_system.fileRead(path_user,"device.csv").split("\r\n");
+            if(file_system.check(path_user+"/"+device_type+".csv")){
+                const list     = file_system.fileRead(path_user,device_type+".csv").split("\r\n");
                 let line_shift = false;
                 for (let index = 0; index < list.length; index++) {
                     if(list[index].split(",")[0] != device_id){
@@ -56,7 +56,7 @@ module.exports = {
                     }
                 }
             }
-            file_system.fileMK(path_user,new_list,"device.csv");
+            file_system.fileMK(path_user,new_list,device_type+".csv");
         }else if(file_system.check(path_device+"/owner.txt")){
             memory_admin.data_renewal(false);
             if(file_system.fileRead(path_device,"owner.txt") == user_id) file_system.fileDel(path_device,"owner.txt");
@@ -68,10 +68,18 @@ module.exports = {
 
     clear_null : async function(){
         let status_code = 200;
-        const devices   = file_system.Dir(path_data.device());
+        const hives = file_system.Dir(path_data.device("device"));
+        const pumps = file_system.Dir(path_data.device("pump"));
         let device_list = false;
-        devices.forEach(device => {
-            const path_device = path_data.device()+"/"+device;
+        hives.forEach(device => {
+            const path_device = path_data.device("device")+"/"+device;
+            if(!file_system.check(path_device+"/owner.txt")){
+                device_list = true;
+                file_system.folderDel(path_device);
+            }
+        });
+        pumps.forEach(device => {
+            const path_device = path_data.device("pump")+"/"+device;
             if(!file_system.check(path_device+"/owner.txt")){
                 device_list = true;
                 file_system.folderDel(path_device);

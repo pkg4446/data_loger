@@ -131,7 +131,7 @@ router.post('/firmware', async function(req, res) {
         status_code = 403;
         if(token_check(admin_data.token)){
             status_code = 200;
-            response = file_system.fileMK(path_data.device()+"/"+req.body.dvid,"1",file_data.firmware_update());
+            response = file_system.fileMK(path_data.device("device")+"/"+req.body.dvid,"1",file_data.firmware_update());
         }
     }
     res.status(status_code).send(response);

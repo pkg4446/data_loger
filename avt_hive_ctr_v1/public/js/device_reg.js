@@ -23,7 +23,7 @@ function alert_swal(icon,title) {
     });
 }
 ////-------------------////
-function list_regist(device_id) {
+function list_regist(type,device_id) {
     console.log(device_id);
     Swal.fire({
         title: "장비 이름",
@@ -42,7 +42,7 @@ function list_regist(device_id) {
                     icon: "error"
                 });
             }else{
-                device_regist("hive",device_id,device_name);
+                device_regist(type,device_id,device_name);
             }
         }
     });
@@ -107,15 +107,24 @@ function fetch_same_ip() {
             alert_swal("error",'로그인 정보가 없습니다.');
             window.location.href = '/web/login';
         }
-        return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
+        return response.json(); // JSON 대신 텍스트로 응답을 읽습니다.
     })
     .then(data => {
-        const device_list = data.split(",");
+        console.log(data);
+        const list_hive = data.hive.split(",");
+        const list_pump = data.pump.split(",");
         let device_list_innerhtml = "";
-        if(device_list.length-1>0){
+        if(list_hive.length-1>0){
             device_list_innerhtml = '<div class="divider">연결 가능한 벌통</div><div class="form-section">';
-            for (let index = 0; index < device_list.length-1; index++) {
-                device_list_innerhtml += `<p class="user-link" id="list_${device_list[index]}" onclick=list_regist("${device_list[index]}") style="cursor:pointer;">${device_list[index]}</p>`
+            for (let index = 0; index < list_hive.length-1; index++) {
+                device_list_innerhtml += `<p class="user-link" id="list_${list_hive[index]}" onclick=list_regist("hive","${list_hive[index]}") style="cursor:pointer;">${list_hive[index]}</p>`
+            }
+            device_list_innerhtml += "</div>";
+        }
+        if(list_pump.length-1>0){
+            device_list_innerhtml += '<div class="divider">연결 가능한 펌프</div><div class="form-section">';
+            for (let index = 0; index < list_pump.length-1; index++) {
+                device_list_innerhtml += `<p class="user-link" id="list_${list_pump[index]}" onclick=list_regist("pump","${list_pump[index]}") style="cursor:pointer;">${list_pump[index]}</p>`
             }
             device_list_innerhtml += "</div>";
         }

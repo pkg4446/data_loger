@@ -10,18 +10,18 @@ router.post('/device', async function(req, res) {
         const request = req.body;
         const path_firmware = path_data.firmware();
         if(file_system.check(path_firmware + "/" + file_data.firmware())){
-            file_system.fileMK(path_data.device()+"/"+request.DVC,"0",file_data.firmware_update());
+            file_system.fileMK(path_data.device("device")+"/"+request.DVC,"0",file_data.firmware_update());
             
             const version = file_system.fileRead(path_firmware,file_data.firmware()).trim();
             console.log(request,version);
-            if(!file_system.check(path_data.device()+"/"+request.DVC + "/ver.txt")){
-                file_system.fileMK(path_data.device()+"/"+request.DVC,request.ver,"ver.txt");
+            if(!file_system.check(path_data.device("device")+"/"+request.DVC + "/ver.txt")){
+                file_system.fileMK(path_data.device("device")+"/"+request.DVC,request.ver,"ver.txt");
                 memory_admin.data_renewal(false);
             }
             if (request.ver !== version) {
                 const filepath = path_firmware + "/device_firmware.bin";
                 if (file_system.check(filepath)) {
-                    file_system.fileMK(path_data.device()+"/"+request.DVC,version,"ver.txt");
+                    file_system.fileMK(path_data.device("device")+"/"+request.DVC,version,"ver.txt");
                     memory_admin.data_renewal(false);
                     // 파일 크기 확인
                     const fs = require('fs');
@@ -41,7 +41,7 @@ router.post('/device', async function(req, res) {
                     });
                     fileStream.pipe(res);
                 }else{
-                    file_system.fileMK(path_data.device()+"/"+request.DVC,request.ver,"ver.txt");
+                    file_system.fileMK(path_data.device("device")+"/"+request.DVC,request.ver,"ver.txt");
                     return res.status(404).send("Firmware file not found");
                 }
             } else {
