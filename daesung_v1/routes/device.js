@@ -47,7 +47,7 @@ router.post('/hub', async function(req, res) {
         req.body.HUB = req.body.HUB.replaceAll(":","_");
 
         const log_date = new Date();
-        const path_hub = path_data.device("act")+"/"+req.body.HUB;
+        const path_hub = path_data.device("hub")+"/"+req.body.HUB;
         const path_device = path_hub+"/"+req.body.TYPE+"/"+req.body.DVC;
         const device_ip   = requestIp.getClientIp(req);
         let path_log = path_device+"/"+log_date.getFullYear()+"/";
