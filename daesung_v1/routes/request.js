@@ -161,7 +161,17 @@ router.post('/hub', async function(req, res) {
             const list_hub = await file_system.Dir(path_hub);
             for (const type_device of list_hub) {
                 if(type_device.split(".").length<2){
-                    response[type_device]=await file_system.Dir(path_hub+"/"+type_device);
+                    const hub_child = await file_system.Dir(path_hub+"/"+type_device);
+                    response[type_device] = {};
+                    for (const child of hub_child) {
+                        const path_child = path_hub+"/"+type_device+"/"+child
+                        if(await file_system.check(path_child+"/lastest.json")){
+                            response[type_device][child] = await file_system.fileRead(path_child,"lastest.json");
+                        }else{
+                            response[type_device][child] = null;
+                        }
+                    }
+                    // response[type_device]
                 }
             }
         }else{

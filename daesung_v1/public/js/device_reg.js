@@ -79,7 +79,6 @@ function DeviceList({initialList,type}) {
                 position: "top",
                 icon:   "info",
                 title:  type+" 장비 이름을 정해주세요.",
-                showConfirmButton: false,
                 input:  'text',
             }).then((result)=>{
                 if(result.isConfirmed && result.value.length > 0){
