@@ -83,19 +83,9 @@ function DeviceList({initialList,type}) {
                 input:  'text',
             }).then((result)=>{
                 if(result.isConfirmed && result.value.length > 0){
-                    fetchData("request/connect",{
-                        id:     localStorage.getItem('user'),
-                        token:  localStorage.getItem('token'),
-                        dvid:   item,
-                        type:   type,
-                        name:   result.value
-                    }).then((result)=>{
-                        if(result.isConfirmed && result.value.length > 0){
-                            device_reg(item,type,result.value).then((response)=>{
-                                if(response) handleRemoveItem(index);
-                            });
-                        }
-                    })
+                    device_reg(item,type,result.value).then((data)=>{
+                        if(data) handleRemoveItem(index);
+                    });
                 }                
             })
         }}, item)
