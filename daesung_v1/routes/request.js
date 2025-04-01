@@ -181,6 +181,25 @@ router.post('/hub', async function(req, res) {
     res.status(status_code).send(response);
 });
 
+router.post('/child', async function(req, res) {
+    let status_code = 400;
+    const response  = {};
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined){
+        const   path_user   = path_data.user()+"/"+user_data.id;
+        if(await login_check.user(user_data.token,user_data.id)){
+            status_code = 200;
+            const path_hub = path_data.device("hub")+"/"+user_data.dvid;
+            if(await file_system.check(path_hub+"/list.json")){
+                response = await file_system.fileRead(path_hub,"list.json");
+            }
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 router.post('/arrange', async function(req, res) {
     let status_code = 400;
     const user_data = req.body;
