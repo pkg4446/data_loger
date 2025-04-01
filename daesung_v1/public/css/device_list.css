@@ -32,6 +32,7 @@
 .device-label {
     color: #8B4513;
     font-weight: bold;
+    cursor: pointer;
 }
 .device-value {
     color: #2C1810;

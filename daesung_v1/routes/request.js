@@ -146,6 +146,31 @@ router.post('/device_rename', async function(req, res) {
     res.status(status_code).send();
 });
 
+router.post('/hub', async function(req, res) {
+    let status_code = 400;
+    const response  = {list:null};
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined){
+        const   path_user   = path_data.user()+"/"+user_data.id;
+        if(await login_check.user(user_data.token,user_data.id)){
+            status_code = 200;
+            const path_hub = path_data.device("hub")+"/"+user_data.dvid;
+            if(await file_system.check(path_hub+"/list.json")){
+                list = await file_system.fileRead(path_hub,"list.json");
+            }
+            const list_hub = await file_system.Dir(path_hub);
+            for (const type_device of list_hub) {
+                if(type_device.split(".").length<2){
+                    response[type_device]=await file_system.Dir(path_hub+"/"+type_device);
+                }
+            }
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 router.post('/arrange', async function(req, res) {
     let status_code = 400;
     const user_data = req.body;
