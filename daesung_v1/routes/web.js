@@ -4,7 +4,7 @@ const router    = express.Router();
 
 router.get('/', async function(req, res) {
     const css = html.css("common");
-    const js  = html.js("fetch")+html.js("login_text");
+    const js  = html.js("fetch")+html.js("login_text")+html.js("index");
     const web_page = await html.page("common",css,js);
     res.status(201).send(web_page);
 });
