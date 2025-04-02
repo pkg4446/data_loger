@@ -1,1 +1,1 @@
-location.replace(location.href+"list");
+location.replace(location.origin+"/web/list");
