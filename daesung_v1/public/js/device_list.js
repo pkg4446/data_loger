@@ -63,7 +63,7 @@ async function equipment() {
             const hubSendData = {...sendData, type: "hub", dvid: status[0]};
             
             try {
-                const response = await fetchData("request/hub", hubSendData);
+                const response = await fetchData("req_hub/info", hubSendData);
                 const list_hub = await response.json();
                 let  list_name = null
                 if(list_hub["list"] != null) list_name = JSON.parse(list_hub["list"]);

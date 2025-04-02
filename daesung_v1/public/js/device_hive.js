@@ -11,7 +11,7 @@ async function equipment() {
     };
     const pathname_parse = (window.location.pathname.split("hive/")[1]).split("/");
     const last_data = await (await fetchData("request/last",  {...sendData, type: "hub", dvid: pathname_parse[0]+"/hive/"+pathname_parse[1]})).json();
-    const list_name = await (await fetchData("request/child", {...sendData, dvid: pathname_parse[0]})).json();
+    const list_name = await (await fetchData("req_hub/child", {...sendData, dvid: pathname_parse[0]})).json();
     
     console.log(last_data);
     console.log(list_name);
@@ -35,7 +35,7 @@ async function equipment() {
         
         const saveName = async() => {
             if(deviceName!=tempName){
-                const rename = await fetchData("request/child_name", {...sendData, hub:pathname_parse[0], type:"hive",  dvid:pathname_parse[1], name:tempName});
+                const rename = await fetchData("req_hub/child_name", {...sendData, hub:pathname_parse[0], type:"hive",  dvid:pathname_parse[1], name:tempName});
                 console.log(rename.status);
                 if(rename.status==200){
                     setDeviceName(tempName);
@@ -81,20 +81,69 @@ async function equipment() {
         }
     }
 
+    function heat_state_str(params) {
+        if(params) return "⭕";
+        else return "❌";
+    }
     // 현재 상태 표시 컴포넌트
     function CurrentStatus({ temperature, humidity, heating }) {
+
+        const [tempGoal,  setTempGoal]  = useState(15);
+        const [heaterUse, setHeaterUse] = useState(true);
+
+        const setGoal = () => {
+            Swal.fire({
+                title: "가온 목표온도",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "설정",
+                cancelButtonText:  "취소",
+                input: "range",
+                inputLabel: "목표온도",
+                inputAttributes: {
+                    min: "0",
+                    max: "35",
+                    step: "1"
+            },
+                inputValue: tempGoal
+            }).then((result) => {
+                if(result.isConfirmed){
+                    setTempGoal(result.value);
+                }
+            })
+        };
+        const setUse  = () => {
+            let bool_heat  = true;
+            let heat_state = "켠다";
+            if(heaterUse){
+                bool_heat  = false;
+                heat_state = "끈다";
+            }
+            Swal.fire({
+                title: "가온을 "+heat_state,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: heat_state,
+                cancelButtonText:  "취소"
+            }).then((result) => {
+                if(result.isConfirmed){
+                    setHeaterUse(bool_heat);
+                }
+            })
+        };
+
         return React.createElement('div', { className: 'card' },
             React.createElement('div', null, '최근 업데이트: '+date_str),
             React.createElement('div', {style:{display:"flex", justifyContent:"space-between"}},
-                React.createElement('h1', null, "가온 온도:"),
+                React.createElement('h1', null, "목표🌡️: "+tempGoal+"°C"),
                 React.createElement('button', {
                     className: 'edit-btn',
-                    onClick: "test"
+                    onClick: ()=>setGoal(25)
                 }, '변경'),
-                React.createElement('h2', null, "가온 작동:"),
+                React.createElement('h2', null, "작동: "+heat_state_str(heaterUse)),
                 React.createElement('button', {
                     className: 'edit-btn',
-                    onClick: "test"
+                    onClick: ()=>setUse("On")
                 }, '변경')
             ),
             React.createElement('div', { className: 'current-readings' },
@@ -252,33 +301,4 @@ async function equipment() {
     }
 
     root.render(React.createElement(App, null));
-}
-
-function rename(type,dvid) {
-    Swal.fire({
-        position: "top",
-        icon:   "info",
-        title:  "이름 바꾸기",
-        input:  'text',
-    }).then(async(result)=>{
-        if(result.isConfirmed && result.value.length > 0){
-            const response = await fetchData("request/device_rename",{
-                id:     localStorage.getItem('user'),
-                token:  localStorage.getItem('token'),
-                type:   type,
-                dvid:   dvid,
-                name:   result.value
-                });
-                console.log(response);
-                if(response.status == 200){
-                    Swal.fire({
-                    position: "top",
-                    icon:   "success",
-                    title:  "변경되었습니다.",
-                    showConfirmButton: false,
-                    timer:  1500
-                });
-            }
-        }                
-    })
 }
