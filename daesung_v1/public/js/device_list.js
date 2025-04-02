@@ -248,6 +248,9 @@ async function equipment() {
                 icon: "info",
                 title: "이름 바꾸기",
                 input: 'text',
+                showCancelButton: true,
+                confirmButtonText: "저장",
+                cancelButtonText: "취소"
             }).then(async(result) => {
                 if(result.isConfirmed && result.value.length > 0) {
                     try {
@@ -302,6 +305,9 @@ async function equipment() {
                 position: "top",
                 icon: "question",
                 title: "장비를 제거합니까?",
+                showCancelButton: true,
+                confirmButtonText: "확인",
+                cancelButtonText: "취소"
             }).then(async (result) => {
                 if(result.isConfirmed) {
                     try {
