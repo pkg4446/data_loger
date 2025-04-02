@@ -45,7 +45,7 @@ router.get('/info', async function(req, res) {
 });
 
 router.get('/list', async function(req, res) {
-    const css = html.css("common")+html.css("user")+html.css("device_list");;
+    const css = html.css("common")+html.css("user")+html.css("device_list");
     const js  = html.js("fetch")+html.js("login_text")+html.js("device_list");
     const web_page = await html.page("common",css,js);
     res.status(201).send(web_page);
@@ -60,8 +60,8 @@ router.get('/act/:id', async function(req, res) {
 });
 
 router.get('/hive/:hub/:hive', async function(req, res) {
-    const css = html.css("common")+html.css("user");
-    const cdn = html.cdn("https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js");
+    const css = html.css("common")+html.css("user")+html.css("device_hive");
+    const cdn = html.cdn("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js");
     const js  = html.js("fetch")+html.js("login_text")+html.js("device_hive");
     const web_page = await html.page("common",css,cdn+js);
     res.status(201).send(web_page);

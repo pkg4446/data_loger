@@ -1,4 +1,8 @@
+const { useState, useEffect, useRef } = React;
+const { createRoot } = ReactDOM;
+
 equipment();
+
 async function equipment() {
     const root  = ReactDOM.createRoot(document.getElementById("root"));
     const sendData = {
@@ -6,153 +10,248 @@ async function equipment() {
         token:  localStorage.getItem('token'),
     };
     const pathname_parse = (window.location.pathname.split("hive/")[1]).split("/");
-    const last_data = await (await fetchData("request/last",  {...sendData, type : "hub", dvid : pathname_parse[0]+"/hive/"+pathname_parse[1]})).json();
-    const list_name = await (await fetchData("request/child", {...sendData, type: "hub", dvid: pathname_parse[0]})).json();
+    const last_data = await (await fetchData("request/last",  {...sendData, type: "hub", dvid: pathname_parse[0]+"/hive/"+pathname_parse[1]})).json();
+    const list_name = await (await fetchData("request/child", {...sendData, dvid: pathname_parse[0]})).json();
     
-    console.log(sendData,last_data,list_name);
+    console.log(last_data);
+    console.log(list_name);
+    const data_date = new Date(last_data.date);
+    const date_str = `${data_date.getFullYear()}/${data_date.getMonth()+1}/${data_date.getDate()}. ${data_date.getHours()}:${data_date.getMinutes()}:${data_date.getSeconds()}`;
 
+    let child_name = pathname_parse[1];
+    if(list_name["hive"] != undefined) {
+        child_name = list_name["hive"][pathname_parse[1]];
+    }
+
+    function Header() {
+        const [deviceName, setDeviceName] = useState(child_name);
+        const [isEditing, setIsEditing] = useState(false);
+        const [tempName, setTempName] = useState('');
+        
+        const startEditing = () => {
+            setTempName(deviceName);
+            setIsEditing(true);
+        };
+        
+        const saveName = async() => {
+            if(deviceName!=tempName){
+                const rename = await fetchData("request/child_name", {...sendData, hub:pathname_parse[0], type:"hive",  dvid:pathname_parse[1], name:tempName});
+                console.log(rename.status);
+                if(rename.status==200){
+                    setDeviceName(tempName);
+                }
+            }
+            setIsEditing(false);
+        };
+        
+        const cancelEdit = () => {
+            setIsEditing(false);
+        };
+        
+        // JSX 없이 createElement로 구현
+        if (isEditing) {
+            return React.createElement('header', null,
+                React.createElement('div', { className: 'device-name' },
+                    React.createElement('input', {
+                        type: 'text',
+                        className: 'name-input',
+                        value: tempName,
+                        onChange: (e) => setTempName(e.target.value)
+                    }),
+                    React.createElement('button', {
+                        className: 'edit-btn',
+                        onClick: saveName
+                    }, '저장'),
+                    React.createElement('button', {
+                        className: 'edit-btn cancel-btn',
+                        onClick: cancelEdit
+                    }, '취소')
+                )
+            );
+        } else {
+            return React.createElement('header', null,
+                React.createElement('h1', null, deviceName),
+                React.createElement('div', { className: 'device-name' },
+                    React.createElement('button', {
+                        className: 'edit-btn',
+                        onClick: startEditing
+                    }, '이름 변경')
+                )
+            );
+        }
+    }
+
+    // 현재 상태 표시 컴포넌트
+    function CurrentStatus({ temperature, humidity, heating }) {
+        return React.createElement('div', { className: 'card' },
+            React.createElement('div', null, '최근 업데이트: '+date_str),
+            React.createElement('div', {style:{display:"flex", justifyContent:"space-between"}},
+                React.createElement('h1', null, "가온 온도:"),
+                React.createElement('button', {
+                    className: 'edit-btn',
+                    onClick: "test"
+                }, '변경'),
+                React.createElement('h2', null, "가온 작동:"),
+                React.createElement('button', {
+                    className: 'edit-btn',
+                    onClick: "test"
+                }, '변경')
+            ),
+            React.createElement('div', { className: 'current-readings' },
+                React.createElement('div', { className: 'reading' },
+                    React.createElement('p', { className: 'value' }, temperature + '°C'),
+                    React.createElement('p', { className: 'label' }, '온도🌡️')
+                ),
+                React.createElement('div', { className: 'reading' },
+                    React.createElement('p', { className: 'value' }, humidity + ' %'),
+                    React.createElement('p', { className: 'label' }, '습도💧')
+                ),
+                React.createElement('div', { className: 'reading' },
+                    React.createElement('p', { className: 'value' }, heating +" W"),
+                    React.createElement('p', { className: 'label' }, '가온🔥')
+                )
+            )
+        );
+    }
+
+    // 차트 컴포넌트
+    function ChartCard({ title, chartId, chartType, data_min, data_max }) {
+        const chartRef = useRef(null);
+        const chartInstance = useRef(null);
+        
+        useEffect(() => {
+            if (chartRef.current) {
+                // 차트 데이터 준비
+                const timeLabels = generateTimeLabels();
+                let chartData, chartColor;
+                
+                switch (chartType) {
+                    case 'temperature':
+                        chartData = [31.2, 31.5, 31.8, 32.0, 32.3, 32.5, 32.6, 31.2, 31.5, 31.8, 32.0];
+                        chartColor = '#f0a500';
+                        break;
+                    case 'humidity':
+                        chartData = [60, 61, 63, 64, 66, 67, 68, 69, 70, 64, 65];
+                        chartColor = '#00adb5';
+                        break;
+                    case 'heating':
+                        chartData = [35, 35, 40, 25, 25, 10, 15, 20, 35, 40, 40];
+                        chartColor = '#ff6b6b';
+                        break;
+                    default:
+                        chartData = [];
+                        chartColor = '#333';
+                }
+                
+                // 이전 차트 인스턴스 제거
+                if (chartInstance.current) {
+                    chartInstance.current.destroy();
+                }
+                
+                // 차트 생성
+                chartInstance.current = new Chart(chartRef.current, {
+                    type: 'line',
+                    data: {
+                        labels: timeLabels,
+                        datasets: [{
+                            label: getChartLabel(chartType),
+                            data: chartData,
+                            borderColor: chartColor,
+                            backgroundColor: `${chartColor}20`, // 투명도 추가
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: data_min,
+                                max: data_max
+                            }
+                        }
+                    }
+                });
+            }
+            // 컴포넌트 언마운트 시 차트 정리
+            return () => {
+                if (chartInstance.current) {
+                    chartInstance.current.destroy();
+                }
+            };
+        }, [chartType]);
+        // 차트 라벨 가져오기
+        function getChartLabel(type) {
+            switch (type) {
+                case 'temperature': return '온도 (°C)';
+                case 'humidity': return '습도 (%)';
+                case 'heating': return '출력 (W)';
+                default: return '';
+            }
+        }
+        return React.createElement('div', { className: 'card' },
+            React.createElement('h3', null, title),
+            React.createElement('div', { className: 'chart-container' },
+                React.createElement('canvas', { id: chartId, ref: chartRef })
+            )
+        );
+    }
+
+    // 메인 앱 컴포넌트
+    function App() {
+        return React.createElement('div', { className: 'container' },
+            React.createElement(Header, null),
+            React.createElement('div', { className: 'dashboard' },
+                React.createElement(CurrentStatus, {
+                    temperature: last_data.temp,
+                    humidity: last_data.humi,
+                    heating:  Math.round((last_data.work/last_data.runt)*40)
+                }),
+                React.createElement(ChartCard, {
+                    title: '온도',
+                    chartId: 'tempChart',
+                    chartType: 'temperature',
+                    data_min: -10,
+                    data_max: 50,
+                }),
+                React.createElement(ChartCard, {
+                    title: '습도',
+                    chartId: 'humidityChart',
+                    chartType: 'humidity',
+                    data_min: 0,
+                    data_max: 100,
+                }),
+                React.createElement(ChartCard, {
+                    title: '가온',
+                    chartId: 'heatingChart',
+                    chartType: 'heating',
+                    data_min: 0,
+                    data_max: 50,
+                })
+            )
+        );
+    }
     
+    // 시간 라벨 생성 함수
+    function generateTimeLabels() {
+        const labels = [];
+        const now = new Date();
+        for (let i = 10; i >= 0; i--) {
+            const d = new Date(now);
+            d.setHours(now.getHours() - i);
+            labels.push(d.getHours() + ':00');
+        }
+        return labels;
+    }
 
-    // const response = await fetchData("request/list",sendData);
-    // const device_list = (await response.text()).split('\r\n');
-    // const devices = {hub:[],act:[]};
-
-    // for (const device of device_list) {
-    //     const status = device.split(',');
-    //     if(status[1] == "hub"){
-    //         let hub_child = [];
-    //         sendData.type = "hub";
-    //         sendData.dvid = status[0];
-    //         const list_hub = await(await fetchData("request/hub",sendData)).json();
-
-    //         for (const child_type in list_hub) {
-    //             if(child_type!="list"){
-    //                 const child_list = list_hub[child_type];
-    //                 let   type_name = "벌통"
-    //                 for (const child in child_list) {
-    //                     let child_name = "새 장치";
-    //                     if(list_hub["list"] != null){
-    //                         child_name = list_hub["list"][child_type][child];
-    //                     };
-    //                     if(child_list[child] == null){
-    //                         hub_child.push(
-    //                             React.createElement("div",{className:"device-child"},
-    //                                 React.createElement("div",{className:"child-table"},[
-    //                                     React.createElement("div",{className:"child-header"},type_name + ": " + child_name),
-    //                                     React.createElement("div",{className:"device-row"},[
-    //                                         React.createElement("div",{className:"device-label"},"ID"),  //device name
-    //                                         React.createElement("div",{className:"device-value"},child)  //device mac address
-    //                                     ])
-    //                                 ])
-    //                             )
-    //                         );
-    //                     }else{
-    //                         const child_data = JSON.parse(child_list[child]);
-    //                         const data_date = new Date(child_data.date);
-    //                         const date_str = `${data_date.getFullYear()}/${data_date.getMonth()}/${data_date.getDate()},${data_date.getHours()}:${data_date.getMinutes()}:${data_date.getSeconds()}`;
-    //                         console.log(child_data);
-    //                         if(child_data.runt == 0) child_data.runt = 1;
-    //                         hub_child.push(
-    //                             React.createElement("div",{className:"device-child"},
-    //                                 React.createElement("div",{className:"child-table"},[
-    //                                     React.createElement("div",{className:"child-header"},type_name + ": " + child_name),
-    //                                     React.createElement("div",{className:"device-row"},[
-    //                                         React.createElement("div",{className:"device-label"},"ID"),  //device name
-    //                                         React.createElement("div",{className:"device-value"},child)  //device mac address
-    //                                     ]),
-    //                                     React.createElement("div",{className:"device-row"},[
-    //                                         React.createElement("div",{className:"device-label"},"시간"),
-    //                                         React.createElement("div",{className:"device-value"},date_str),
-    //                                     ]),
-    //                                     React.createElement("div",{className:"device-row"},[
-    //                                         React.createElement("div",{className:"device-label"},"온도🌡️"),
-    //                                         React.createElement("div",{className:"device-value"},child_data.temp+"°C"),
-    //                                     ]),
-    //                                     React.createElement("div",{className:"device-row"},[
-    //                                         React.createElement("div",{className:"device-label"},"습도💧"),
-    //                                         React.createElement("div",{className:"device-value"},child_data.humi+" %"),
-    //                                     ]),
-    //                                     React.createElement("div",{className:"device-row"},[
-    //                                         React.createElement("div",{className:"device-label"},"출력🔥"),
-    //                                         React.createElement("div",{className:"device-value"},Math.round((child_data.work/child_data.runt)*40)+" W"),
-    //                                     ]),
-    //                                 ])
-    //                             )
-    //                         );
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         devices.hub.push(
-    //             React.createElement("div",{className:"device-table"},[
-    //                 React.createElement("div",{className:"device-header"},status[2]+" 🍯 양봉장"),
-    //                 React.createElement("div",{className:"device-row"},[
-    //                     React.createElement("div",{className:"device-label"},"ID"),   //device name
-    //                     React.createElement("div",{className:"device-value"},status[0].replaceAll("_",":"))  //device mac address
-    //                 ]),
-    //                 React.createElement("div", { className: "device-row" }, [
-    //                     React.createElement("div", { 
-    //                       className: "device-button", 
-    //                       onClick: () => unconnect(status[1],status[0])
-    //                     }, "장비삭제"),
-    //                     React.createElement("div", { 
-    //                       className: "device-button", 
-    //                       onClick: () => rename(status[1],status[0])
-    //                     }, "이름변경")
-    //                 ]),
-    //                 hub_child
-    //             ])
-    //         );
-    //     }else if(status[1] == "act"){
-    //         sendData.type = "act";
-    //         sendData.dvid = status[0];
-    //         const last_data = await(await fetchData("request/last",sendData)).json();
-    //         const data_date = new Date(last_data.date);
-    //         const date_str = `${data_date.getFullYear()}/${data_date.getMonth()}/${data_date.getDate()},${data_date.getHours()}:${data_date.getMinutes()}:${data_date.getSeconds()}`;
-    //         devices.act.push(
-    //             React.createElement("div",{className:"device-table"},[
-    //                 React.createElement("div",{className:"device-header",onClick:()=>{location.href="/web/act/"+status[0]}},status[2]+" 🐝 출입기록"),
-    //                 React.createElement("div",{className:"device-row"},[
-    //                     React.createElement("div",{className:"device-label"},"ID"),   //device name
-    //                     React.createElement("div",{className:"device-value"},status[0].replaceAll("_",":"))  //device mac address
-    //                 ]),
-    //                 React.createElement("div",{className:"device-row"},[
-    //                     React.createElement("div",{className:"device-label"},"시간"),
-    //                     React.createElement("div",{className:"device-value"},date_str),
-    //                 ]),
-    //                 React.createElement("div", { className: "device-row" }, [
-    //                     React.createElement("div", { 
-    //                       className: "device-button", 
-    //                       onClick: () => unconnect(status[1],status[0])
-    //                     }, "장비삭제"),
-    //                     React.createElement("div", { 
-    //                       className: "device-button", 
-    //                       onClick: () => rename(status[1],status[0])
-    //                     }, "이름변경")
-    //                 ]),
-    //                 React.createElement("div",{className:"device-row"},[
-    //                     React.createElement("div",{className:"device-label"},"합계"),
-    //                     React.createElement("div",{className:"device-value"},last_data.sum),
-    //                 ]),
-    //                 React.createElement("div",{className:"device-row"},[
-    //                     React.createElement("div",{className:"device-label"},"출"),
-    //                     React.createElement("div",{className:"device-value"},last_data.in),
-    //                 ]),
-    //                 React.createElement("div",{className:"device-row"},[
-    //                     React.createElement("div",{className:"device-label"},"입"),
-    //                     React.createElement("div",{className:"device-value"},last_data.out),
-    //                 ])
-    //             ])
-    //         );
-    //     }
-    // }
-    // let container = [];
-    // for (const key in devices) {
-    //     if (devices[key].length > 0) {
-    //         container.push(React.createElement("div",{style:{width:"100%",margin:"auto"}},devices[key]));
-    //     }
-    // }
-    // root.render(container);
+    root.render(React.createElement(App, null));
 }
 
 function rename(type,dvid) {

@@ -65,22 +65,25 @@ async function equipment() {
             try {
                 const response = await fetchData("request/hub", hubSendData);
                 const list_hub = await response.json();
+                let  list_name = null
+                if(list_hub["list"] != null) list_name = JSON.parse(list_hub["list"]);
                 
                 for (const child_type in list_hub) {
                     if(child_type !== "list") {
                         const child_list = list_hub[child_type];
+                        console.log(list_hub);
                         let type_name = "벌통";
                         for (const child in child_list) {
                             let child_name = "새 장치";
-                            if(list_hub["list"] != null) {
-                                child_name = list_hub["list"][child_type][child];
+                            if(list_name  != null) {
+                                if(list_name[child_type][child] != undefined) child_name = list_name[child_type][child];
                             }
                             
                             if(child_list[child] == null) {
                                 hub_child.push(
                                     React.createElement("div", {className: "device-child", key: `${status[0]}-${child}`},
                                         React.createElement("div", {className: "child-table"}, [
-                                            React.createElement("div", {className: "child-header",onClick:()=>{location.href = "/web/"+child_type+"/"+status[0]+"/"+child}}, type_name + ": " + child_name),
+                                            React.createElement("div", {className: "child-header"}, type_name + ": " + child_name),
                                             React.createElement("div", {className: "device-row"}, [
                                                 React.createElement("div", {className: "device-label"}, "ID"),
                                                 React.createElement("div", {className: "device-value"}, child)
@@ -116,7 +119,7 @@ async function equipment() {
                                                     React.createElement("div", {className: "device-value"}, child_data.humi + " %"),
                                                 ]),
                                                 React.createElement("div", {className: "device-row"}, [
-                                                    React.createElement("div", {className: "device-label"}, "출력🔥"),
+                                                    React.createElement("div", {className: "device-label"}, "가온🔥"),
                                                     React.createElement("div", {className: "device-value"}, Math.round((child_data.work/child_data.runt)*40) + " W"),
                                                 ]),
                                             ])

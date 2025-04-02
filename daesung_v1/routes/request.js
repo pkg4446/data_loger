@@ -151,12 +151,11 @@ router.post('/hub', async function(req, res) {
     const response  = {list:null};
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined){
-        const   path_user   = path_data.user()+"/"+user_data.id;
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
             const path_hub = path_data.device("hub")+"/"+user_data.dvid;
             if(await file_system.check(path_hub+"/list.json")){
-                list = await file_system.fileRead(path_hub,"list.json");
+                response.list = await file_system.fileRead(path_hub,"list.json");
             }
             const list_hub = await file_system.Dir(path_hub);
             for (const type_device of list_hub) {
@@ -183,10 +182,9 @@ router.post('/hub', async function(req, res) {
 
 router.post('/child', async function(req, res) {
     let status_code = 400;
-    const response  = {};
+    let response    = {};
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined){
-        const   path_user   = path_data.user()+"/"+user_data.id;
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
             const path_hub = path_data.device("hub")+"/"+user_data.dvid;
@@ -200,11 +198,33 @@ router.post('/child', async function(req, res) {
     res.status(status_code).send(response);
 });
 
+router.post('/child_name', async function(req, res) {
+    let status_code = 400;
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.hub!=undefined && user_data.type!=undefined && user_data.dvid!=undefined && user_data.name!=undefined && user_data.name.length>0){
+        if(await login_check.user(user_data.token,user_data.id)){
+            status_code = 200;
+            const path_hub = path_data.device("hub")+"/"+user_data.hub;
+
+            let list_json = {};
+            if(await file_system.check(path_hub+"/list.json")) list_json = JSON.parse(await file_system.fileRead(path_hub,"list.json"));
+            if(list_json[user_data.type] == undefined) list_json[user_data.type] = {};
+            list_json[user_data.type][user_data.dvid] = user_data.name;
+
+            await file_system.fileMK(path_hub,JSON.stringify(list_json),"list.json");
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send();
+});
+
+
 router.post('/arrange', async function(req, res) {
     let status_code = 400;
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.data!=undefined){
-        const   path_user   = path_data.user()+"/"+user_data.id;
+        // const   path_user   = path_data.user()+"/"+user_data.id;
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
             console.log(user_data.data);
