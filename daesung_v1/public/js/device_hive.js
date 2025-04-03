@@ -11,18 +11,26 @@ async function equipment() {
     };
     const pathname_parse = (window.location.pathname.split("hive/")[1]).split("/");
     const last_data = await (await fetchData("request/last",  {...sendData, type: "hub", dvid: pathname_parse[0]+"/hive/"+pathname_parse[1]})).json();
-    const list_name = await (await fetchData("req_hub/child", {...sendData, dvid: pathname_parse[0]})).json();
-    
-    console.log(last_data);
-    console.log(list_name);
     const data_date = new Date(last_data.date);
-    const date_str = `${data_date.getFullYear()}/${data_date.getMonth()+1}/${data_date.getDate()}. ${data_date.getHours()}:${data_date.getMinutes()}:${data_date.getSeconds()}`;
+    const date_str  = `${data_date.getFullYear()}/${data_date.getMonth()+1}/${data_date.getDate()}. ${data_date.getHours()}:${data_date.getMinutes()}:${data_date.getSeconds()}`;
+    
+    const hive_name  = await (await fetchData("req_hub/child", {...sendData, hub: pathname_parse[0], type:"hive", dvid:pathname_parse[1]})).json();
+    const child_name = hive_name.name!=undefined ? hive_name.name:pathname_parse[1];
 
-    let child_name = pathname_parse[1];
-    if(list_name["hive"] != undefined) {
-        child_name = list_name["hive"][pathname_parse[1]];
-    }
+    const hive_config = await (await fetchData("req_hub/child_config", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1]})).json();
 
+    const today = new Date();
+
+    let file_path = today.getFullYear()+"/";
+    if(today.getMonth()<10) file_path += "0";
+    file_path += today.getMonth();
+
+    let file_name = today.getDate()<10?"0":"";
+    file_name += today.getDate();
+
+    const hive_log = await (await fetchData("req_hub/child_log", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1], data:{path:file_path,name:file_name}})).json();
+    console.log(hive_log);
+    
     function Header() {
         const [deviceName, setDeviceName] = useState(child_name);
         const [isEditing, setIsEditing] = useState(false);
@@ -35,8 +43,7 @@ async function equipment() {
         
         const saveName = async() => {
             if(deviceName!=tempName){
-                const rename = await fetchData("req_hub/child_name", {...sendData, hub:pathname_parse[0], type:"hive",  dvid:pathname_parse[1], name:tempName});
-                console.log(rename.status);
+                const rename = await fetchData("req_hub/child_name", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1], name:tempName});
                 if(rename.status==200){
                     setDeviceName(tempName);
                 }
@@ -88,13 +95,13 @@ async function equipment() {
     // 현재 상태 표시 컴포넌트
     function CurrentStatus({ temperature, humidity, heating }) {
 
-        const [tempGoal,  setTempGoal]  = useState(15);
-        const [heaterUse, setHeaterUse] = useState(true);
+        const [tempGoal,  setTempGoal]  = useState(hive_config.goal);
+        const [heaterUse, setHeaterUse] = useState(hive_config.run);
 
         const setGoal = () => {
+            const ex_state = parseInt(tempGoal);
             Swal.fire({
                 title: "가온 목표온도",
-                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: "설정",
                 cancelButtonText:  "취소",
@@ -106,41 +113,48 @@ async function equipment() {
                     step: "1"
             },
                 inputValue: tempGoal
-            }).then((result) => {
+            }).then(async(result) => {
                 if(result.isConfirmed){
-                    setTempGoal(result.value);
+                    const change_temp = parseInt(result.value);
+                    if(ex_state != change_temp){
+                        const response = await fetchData("req_hub/child_set", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1], config:{ex_goal:change_temp}})
+                        setTempGoal(result.value);
+                    }
                 }
             })
         };
         const setUse  = () => {
-            let bool_heat  = true;
+            let bool_heat  = 1;
             let heat_state = "켠다";
             if(heaterUse){
-                bool_heat  = false;
+                bool_heat  = 0;
                 heat_state = "끈다";
             }
             Swal.fire({
                 title: "가온을 "+heat_state,
-                icon: "question",
                 showCancelButton: true,
                 confirmButtonText: heat_state,
                 cancelButtonText:  "취소"
-            }).then((result) => {
+            }).then(async(result) => {
                 if(result.isConfirmed){
+                    const response = await fetchData("req_hub/child_set", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1], config:{ex_run:bool_heat}})
                     setHeaterUse(bool_heat);
                 }
             })
         };
 
+        const state_goal = tempGoal ==hive_config.ex_goal? tempGoal:hive_config.ex_goal+"°C➝"+tempGoal;
+        const state_use  = heaterUse==hive_config.ex_run ? heat_state_str(heaterUse):heat_state_str(hive_config.ex_run)+"➝"+heat_state_str(heaterUse);
+
         return React.createElement('div', { className: 'card' },
             React.createElement('div', null, '최근 업데이트: '+date_str),
             React.createElement('div', {style:{display:"flex", justifyContent:"space-between"}},
-                React.createElement('h1', null, "목표🌡️: "+tempGoal+"°C"),
+                React.createElement('div', { className: 'headline' }, "목표🌡️: "+state_goal+"°C"),
                 React.createElement('button', {
                     className: 'edit-btn',
                     onClick: ()=>setGoal(25)
                 }, '변경'),
-                React.createElement('h2', null, "작동: "+heat_state_str(heaterUse)),
+                React.createElement('div', { className: 'headline' }, "작동: "+state_use),
                 React.createElement('button', {
                     className: 'edit-btn',
                     onClick: ()=>setUse("On")

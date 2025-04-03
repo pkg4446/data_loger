@@ -9,9 +9,9 @@ header {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-h1 {
+.headline {
     margin: 0;
-    color: #f0a500;
+    color: #d18f00;
 }
 
 .device-name {

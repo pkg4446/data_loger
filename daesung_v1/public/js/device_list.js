@@ -74,11 +74,7 @@ async function equipment() {
                         console.log(list_hub);
                         let type_name = "벌통";
                         for (const child in child_list) {
-                            let child_name = "새 장치";
-                            if(list_name  != null) {
-                                if(list_name[child_type][child] != undefined) child_name = list_name[child_type][child];
-                            }
-                            
+                            const child_name = (list_name!=null&&list_name[child_type][child]!= undefined)?list_name[child_type][child]:"새 장치";
                             if(child_list[child] == null) {
                                 hub_child.push(
                                     React.createElement("div", {className: "device-child", key: `${status[0]}-${child}`},
