@@ -17,7 +17,7 @@ async function page_init() {
     const handleSubmit = (event) => {
         event.preventDefault();
         const formData = new FormData(event.target);
-        device_reg(formData.get("device_type"),formData.get("device"),formData.get("device_name"))
+        device_reg(formData.get("device"),formData.get("device_type"),formData.get("device_name"))
     }
 
     let elemets = [
@@ -25,17 +25,17 @@ async function page_init() {
         React.createElement("form",{id:"userForm", onSubmit: handleSubmit},[
             React.createElement("div",{style:data_row},[
                 React.createElement("label",{style:cell, htmlFor:"device"},"벌통"),
-                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"hive", defaultChecked:true}),
+                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"hub", defaultChecked:true}),
                 React.createElement("label",{style:cell, htmlFor:"device"},"활동감지"),
                 React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"act"}),
             ]),
             React.createElement("div",{className:"input-group"},[
                 React.createElement("label",{htmlFor:"device"},"장비ID"),
-                React.createElement("input",{type:"text", className:"input-field", id:"device", required:true},null),
+                React.createElement("input",{type:"text", className:"input-field", name:"device", required:true},null),
             ]),
             React.createElement("div",{className:"input-group"},[
                 React.createElement("label",{htmlFor:"device_name"},"장비 이름"),
-                React.createElement("input",{type:"text", className:"input-field", id:"device_name", required:true},null),
+                React.createElement("input",{type:"text", className:"input-field", name:"device_name", required:true},null),
             ]),
             React.createElement("button",{className:"submit-button"},"등록"),
         ])
