@@ -62,17 +62,26 @@ async function equipment() {
                 cancelButtonText:  "취소"
             }).then(async(result) => {
                 if(result.isConfirmed){
-                    const response = await fetchData("req_hub/child_del", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1]})
-                    if(response.status == 200){
-                        Swal.fire({
-                            position: "top",
-                            icon:   "success",
-                            title:  '장비가 제거되었습니다.',
-                            timer:  1000
-                        }).then(() => {
-                            location.replace(location.origin+"/web/list");
-                        });
-                    }
+                    secret_code("연결 해제").then(async(result) => {
+                        if(result){
+                            const response = await fetchData("req_hub/child_del", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1]})
+                            if(response.status == 200){
+                                Swal.fire({
+                                    position: "top",
+                                    icon:   "success",
+                                    title:  '장비가 제거되었습니다.',
+                                    timer:  1000
+                                }).then(() => {
+                                    location.replace(location.origin+"/web/list");
+                                });
+                            }
+                        }else{
+                            Swal.fire({
+                                title: "코드가 틀렸습니다.",
+                                icon:  "error"
+                            });
+                        }
+                    })
                 }
             })
         };
@@ -325,4 +334,35 @@ async function equipment() {
         );
     }
     root.render(React.createElement(App, null));
+}
+
+async function secret_code(title) {
+    let del_code = "";
+    for (let index = 0; index < 4; index++) {
+        del_code += ascii();
+    }
+    const input = await Swal.fire({
+        title: title,
+        input: "text",
+        text: del_code + "를 입력하세요.",
+        showCancelButton: true,
+        inputPlaceholder: del_code,
+        confirmButtonText: "변경",
+        cancelButtonText:  "취소"
+    })
+    console.log(del_code,input.value);
+    return del_code == input.value;
+}
+////-------------------////
+function ascii() {
+    const type = Math.floor(Math.random()*3);
+    let ascii_dec = 0;
+    if(type == 0){
+        ascii_dec = Math.floor(Math.random()*10)+48;
+    }else{
+        ascii_dec = Math.floor(Math.random()*26);
+        if(type == 1) ascii_dec += 65;
+        else ascii_dec += 97;
+    }
+    return String.fromCharCode(ascii_dec);
 }

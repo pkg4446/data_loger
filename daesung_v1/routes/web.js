@@ -62,7 +62,7 @@ router.get('/act/:id', async function(req, res) {
 router.get('/hive/:hub/:hive', async function(req, res) {
     const css = html.css("common")+html.css("user")+html.css("device_hive");
     const cdn = html.cdn("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js");
-    const js  = html.js("fetch")+html.js("login_text")+html.js("device_hive");
+    const js  = html.js("fetch")+html.js("login_text")+html.js("secretcode")+html.js("device_hive");
     const web_page = await html.page("common",css,cdn+js);
     res.status(201).send(web_page);
 });
