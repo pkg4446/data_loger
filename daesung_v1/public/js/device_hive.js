@@ -255,14 +255,16 @@ async function equipment() {
 
     // 메인 앱 컴포넌트
     function App() {
-        return React.createElement('div', { className: 'container' },
+        return React.createElement('div', { style:{width:"100%"} },
             React.createElement(Header, null),
+            React.createElement(CurrentStatus, {
+                temperature: last_data.temp,
+                humidity: last_data.humi,
+                heating:  Math.round((last_data.work/last_data.runt)*40)
+            }),
+            React.createElement('br', null, null),
             React.createElement('div', { className: 'dashboard' },
-                React.createElement(CurrentStatus, {
-                    temperature: last_data.temp,
-                    humidity: last_data.humi,
-                    heating:  Math.round((last_data.work/last_data.runt)*40)
-                }),
+                
                 React.createElement(ChartCard, {
                     title: '온도',
                     chartId: 'tempChart',

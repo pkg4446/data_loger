@@ -1,7 +1,8 @@
 .device-table {
     margin: auto;
-    margin-top:     10px;
-    margin-bottom:  10px;
+    width: 90%;
+    margin-top:     5px;
+    margin-bottom:  5px;
     background-color: #f9e076;
     border: 6px solid #8B4513;
     border-radius: 15px;

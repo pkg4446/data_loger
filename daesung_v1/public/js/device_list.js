@@ -373,7 +373,7 @@ async function equipment() {
         if (devices.hub.length > 0) {
             container.push(
                 React.createElement("div", {
-                    style: {width: "100%", margin: "auto"},
+                    className: "dashboard",
                     key: "hub-container"
                 }, devices.hub)
             );
@@ -383,7 +383,7 @@ async function equipment() {
         if (devices.act.length > 0) {
             container.push(
                 React.createElement("div", {
-                    style: {width: "100%", margin: "auto"},
+                    className: "dashboard",
                     key: "act-container"
                 }, devices.act)
             );
