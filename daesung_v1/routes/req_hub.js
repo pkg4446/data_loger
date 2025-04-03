@@ -63,14 +63,35 @@ router.post('/child_name', async function(req, res) {
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.hub!=undefined && user_data.dvid!=undefined && user_data.type!=undefined && user_data.name!=undefined && user_data.name.length>0){
         if(await login_check.user(user_data.token,user_data.id)){
-            status_code = 200;
             const path_hub = path_data.device("hub")+"/"+user_data.hub;
-            let list_json = {};
-            if(await file_system.check(path_hub+"/list.json")) list_json = JSON.parse(await file_system.fileRead(path_hub,"list.json"));
-            if(list_json[user_data.type] == undefined) list_json[user_data.type] = {};
-            list_json[user_data.type][user_data.dvid] = user_data.name;
+            if(await file_system.fileRead(path_hub,"owner.txt") == user_data.id){
+                status_code = 200;
+                let list_json = {};
+                if(await file_system.check(path_hub+"/list.json")) list_json = JSON.parse(await file_system.fileRead(path_hub,"list.json"));
+                if(list_json[user_data.type] == undefined) list_json[user_data.type] = {};
+                list_json[user_data.type][user_data.dvid] = user_data.name;
+                await file_system.fileMK(path_hub,JSON.stringify(list_json),"list.json");
+            }
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send();
+});
 
-            await file_system.fileMK(path_hub,JSON.stringify(list_json),"list.json");
+router.post('/child_del', async function(req, res) {
+    let status_code = 400;
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.hub!=undefined && user_data.dvid!=undefined && user_data.type!=undefined){
+        if(await login_check.user(user_data.token,user_data.id)){
+            const path_hub = path_data.device("hub")+"/"+user_data.hub;
+            if(await file_system.fileRead(path_hub,"owner.txt") == user_data.id){
+                const path_child = path_hub+"/"+user_data.type+"/"+user_data.dvid;
+                if(await file_system.check(path_child)){
+                    status_code = 200;
+                    await file_system.folderDel(path_child);
+                }
+            }
         }else{
             status_code = 401;
         }
@@ -120,17 +141,20 @@ router.post('/child_set', async function(req, res) {
     const user_data = req.body;
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined && user_data.config!=undefined){
         if(await login_check.user(user_data.token,user_data.id)){
-            const path_child = path_data.device("hub")+"/"+user_data.hub+"/"+user_data.type+"/"+user_data.dvid;
-            if(await file_system.check(path_child)){
-                status_code = 200;
-                if(await file_system.check(path_child+"/config.json")){
-                    const device_config = JSON.parse(await file_system.fileRead(path_child,"config.json"));
-                    for (const key in user_data.config) {
-                        device_config[key] = user_data.config[key];
+            const path_hub   = path_data.device("hub")+"/"+user_data.hub;
+            if(await file_system.fileRead(path_hub,"owner.txt") == user_data.id){
+                const path_child = path_hub+"/"+user_data.type+"/"+user_data.dvid;
+                if(await file_system.check(path_child)){
+                    status_code = 200;
+                    if(await file_system.check(path_child+"/config.json")){
+                        const device_config = JSON.parse(await file_system.fileRead(path_child,"config.json"));
+                        for (const key in user_data.config) {
+                            device_config[key] = user_data.config[key];
+                        }
+                        await file_system.fileMK(path_child,JSON.stringify(device_config),"config.json");
+                    }else{
+                        await file_system.fileMK(path_child,JSON.stringify(user_data.config),"config.json");
                     }
-                    await file_system.fileMK(path_child,JSON.stringify(device_config),"config.json");
-                }else{
-                    await file_system.fileMK(path_child,JSON.stringify(user_data.config),"config.json");
                 }
             }
         }else{

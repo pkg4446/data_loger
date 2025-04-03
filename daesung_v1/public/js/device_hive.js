@@ -29,7 +29,7 @@ async function equipment() {
     file_name += today.getDate();
 
     const hive_log = await (await fetchData("req_hub/child_log", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1], data:{path:file_path,name:file_name}})).json();
-    console.log(hive_log);
+    // console.log(hive_log);
 
     let table_time = [];
     let table_temp = [];
@@ -42,7 +42,7 @@ async function equipment() {
         table_humi.push(log.humi);
         table_heat.push((log.work/log.runt)*40);
     }
-    console.log(table_time,table_temp,table_humi,table_heat);
+    // console.log(table_time,table_temp,table_humi,table_heat);
     
     function Header() {
         const [deviceName, setDeviceName] = useState(child_name);
@@ -52,6 +52,29 @@ async function equipment() {
         const startEditing = () => {
             setTempName(deviceName);
             setIsEditing(true);
+        };
+
+        const delete_this = () => {
+            Swal.fire({
+                title: "장비를 제거합니까?",
+                showCancelButton: true,
+                confirmButtonText: "제거",
+                cancelButtonText:  "취소"
+            }).then(async(result) => {
+                if(result.isConfirmed){
+                    const response = await fetchData("req_hub/child_del", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1]})
+                    if(response.status == 200){
+                        Swal.fire({
+                            position: "top",
+                            icon:   "success",
+                            title:  '장비가 제거되었습니다.',
+                            timer:  1000
+                        }).then(() => {
+                            location.replace(location.origin+"/web/list");
+                        });
+                    }
+                }
+            })
         };
         
         const saveName = async() => {
@@ -79,13 +102,13 @@ async function equipment() {
                         onChange: (e) => setTempName(e.target.value)
                     }),
                     React.createElement('button', {
-                        className: 'edit-btn',
-                        onClick: saveName
-                    }, '저장'),
-                    React.createElement('button', {
                         className: 'edit-btn cancel-btn',
                         onClick: cancelEdit
-                    }, '취소')
+                    }, '취소'),
+                    React.createElement('button', {
+                        className: 'edit-btn',
+                        onClick: saveName
+                    }, '저장')
                 )
             );
         } else {
@@ -93,10 +116,14 @@ async function equipment() {
                 React.createElement('h1', null, deviceName),
                 React.createElement('div', { className: 'device-name' },
                     React.createElement('button', {
+                        className: 'edit-btn cancel-btn',
+                        onClick: delete_this
+                    }, '장비 삭제'),
+                    React.createElement('button', {
                         className: 'edit-btn',
                         onClick: startEditing
                     }, '이름 변경')
-                )
+                ),
             );
         }
     }
@@ -108,8 +135,8 @@ async function equipment() {
     // 현재 상태 표시 컴포넌트
     function CurrentStatus({ temperature, humidity, heating }) {
 
-        const [tempGoal,  setTempGoal]  = useState(hive_config.goal);
-        const [heaterUse, setHeaterUse] = useState(hive_config.run);
+        const [tempGoal,  setTempGoal]  = useState(hive_config.ex_goal);
+        const [heaterUse, setHeaterUse] = useState(hive_config.ex_run);
 
         const setGoal = () => {
             const ex_state = parseInt(tempGoal);
@@ -156,8 +183,8 @@ async function equipment() {
             })
         };
 
-        const state_goal = tempGoal ==hive_config.ex_goal? tempGoal:hive_config.ex_goal+"°C➝"+tempGoal;
-        const state_use  = heaterUse==hive_config.ex_run ? heat_state_str(heaterUse):heat_state_str(hive_config.ex_run)+"➝"+heat_state_str(heaterUse);
+        const state_goal = tempGoal ==hive_config.goal? tempGoal:hive_config.goal+"°C➝"+tempGoal;
+        const state_use  = heaterUse==hive_config.run ? heat_state_str(heaterUse):heat_state_str(hive_config.run)+"➝"+heat_state_str(heaterUse);
 
         return React.createElement('div', { className: 'card' },
             React.createElement('div', null, '최근 업데이트: '+date_str),

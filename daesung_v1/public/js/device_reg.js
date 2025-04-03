@@ -22,6 +22,7 @@ async function page_init() {
 
     let elemets = [
         React.createElement("h2",null,"장비등록"),
+        React.createElement("br",null,null),
         React.createElement("form",{id:"userForm", onSubmit: handleSubmit},[
             React.createElement("div",{style:data_row},[
                 React.createElement("label",{style:cell, htmlFor:"device"},"벌통"),
