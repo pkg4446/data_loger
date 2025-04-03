@@ -30,6 +30,19 @@ async function equipment() {
 
     const hive_log = await (await fetchData("req_hub/child_log", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1], data:{path:file_path,name:file_name}})).json();
     console.log(hive_log);
+
+    let table_time = [];
+    let table_temp = [];
+    let table_humi = [];
+    let table_heat = [];
+    for (const log of hive_log) {
+        const log_time= new Date(log.date);
+        table_time.push(log_time.getHours()+":"+log_time.getMinutes());
+        table_temp.push(log.temp);
+        table_humi.push(log.humi);
+        table_heat.push((log.work/log.runt)*40);
+    }
+    console.log(table_time,table_temp,table_humi,table_heat);
     
     function Header() {
         const [deviceName, setDeviceName] = useState(child_name);
@@ -178,34 +191,12 @@ async function equipment() {
     }
 
     // 차트 컴포넌트
-    function ChartCard({ title, chartId, chartType, data_min, data_max }) {
+    function ChartCard({ title, chartId, chartData, chartColor, data_min, data_max }) {
         const chartRef = useRef(null);
         const chartInstance = useRef(null);
         
         useEffect(() => {
-            if (chartRef.current) {
-                // 차트 데이터 준비
-                const timeLabels = generateTimeLabels();
-                let chartData, chartColor;
-                
-                switch (chartType) {
-                    case 'temperature':
-                        chartData = [31.2, 31.5, 31.8, 32.0, 32.3, 32.5, 32.6, 31.2, 31.5, 31.8, 32.0];
-                        chartColor = '#f0a500';
-                        break;
-                    case 'humidity':
-                        chartData = [60, 61, 63, 64, 66, 67, 68, 69, 70, 64, 65];
-                        chartColor = '#00adb5';
-                        break;
-                    case 'heating':
-                        chartData = [35, 35, 40, 25, 25, 10, 15, 20, 35, 40, 40];
-                        chartColor = '#ff6b6b';
-                        break;
-                    default:
-                        chartData = [];
-                        chartColor = '#333';
-                }
-                
+            if (chartRef.current) {                
                 // 이전 차트 인스턴스 제거
                 if (chartInstance.current) {
                     chartInstance.current.destroy();
@@ -215,9 +206,9 @@ async function equipment() {
                 chartInstance.current = new Chart(chartRef.current, {
                     type: 'line',
                     data: {
-                        labels: timeLabels,
+                        labels: table_time,
                         datasets: [{
-                            label: getChartLabel(chartType),
+                            label: getChartLabel(title),
                             data: chartData,
                             borderColor: chartColor,
                             backgroundColor: `${chartColor}20`, // 투명도 추가
@@ -249,13 +240,13 @@ async function equipment() {
                     chartInstance.current.destroy();
                 }
             };
-        }, [chartType]);
+        }, [title]);
         // 차트 라벨 가져오기
         function getChartLabel(type) {
             switch (type) {
-                case 'temperature': return '온도 (°C)';
-                case 'humidity': return '습도 (%)';
-                case 'heating': return '출력 (W)';
+                case '온도': return '°C';
+                case '습도': return '%';
+                case '가온': return 'W';
                 default: return '';
             }
         }
@@ -282,39 +273,29 @@ async function equipment() {
                 React.createElement(ChartCard, {
                     title: '온도',
                     chartId: 'tempChart',
-                    chartType: 'temperature',
+                    chartData: table_temp,
+                    chartColor: '#f0a500',
                     data_min: -10,
                     data_max: 50,
                 }),
                 React.createElement(ChartCard, {
                     title: '습도',
                     chartId: 'humidityChart',
-                    chartType: 'humidity',
+                    chartData: table_humi,
+                    chartColor: '#00adb5',
                     data_min: 0,
                     data_max: 100,
                 }),
                 React.createElement(ChartCard, {
                     title: '가온',
                     chartId: 'heatingChart',
-                    chartType: 'heating',
+                    chartData: table_heat,
+                    chartColor: '#ff6b6b',
                     data_min: 0,
                     data_max: 50,
                 })
             )
         );
     }
-    
-    // 시간 라벨 생성 함수
-    function generateTimeLabels() {
-        const labels = [];
-        const now = new Date();
-        for (let i = 10; i >= 0; i--) {
-            const d = new Date(now);
-            d.setHours(now.getHours() - i);
-            labels.push(d.getHours() + ':00');
-        }
-        return labels;
-    }
-
     root.render(React.createElement(App, null));
 }
