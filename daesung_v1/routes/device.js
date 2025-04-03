@@ -93,16 +93,12 @@ router.post('/hub', async function(req, res) {
             }
         }else if(req.body.API == "set"){
             console.log(req.body);
-            if(await file_system.check(path_device + "/config.json")){
-                const device_config   = JSON.parse(await file_system.fileRead(path_device,"config.json"));
-                device_config.ex_goal = req.body.DATA.goal;
-                device_config.goal    = req.body.DATA.goal;
-                device_config.ex_run  = req.body.DATA.run;
-                device_config.run     = req.body.DATA.run;
-                await file_system.fileMK(path_device,JSON.stringify(device_config),"config.json");
-            }else{
-                await file_system.fileMK(path_device,JSON.stringify(req.body.DATA),"config.json");
-            }
+            const device_config   = JSON.parse(await file_system.fileRead(path_device,"config.json"));
+            device_config.ex_goal = req.body.DATA.goal;
+            device_config.goal    = req.body.DATA.goal;
+            device_config.ex_run  = req.body.DATA.run;
+            device_config.run     = req.body.DATA.run;
+            await file_system.fileMK(path_device,JSON.stringify(device_config),"config.json");
         }
     }
     res.status(status).send(response);
