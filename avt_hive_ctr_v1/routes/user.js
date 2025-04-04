@@ -71,16 +71,6 @@ router.post('/join', async function(req, res) {
     res.status(status_code).send();
 });
 
-function token_check(token,user_id) {
-    let response = false;
-    const path_user = path_data.user()+"/"+user_id;
-    if(file_system.check(path_user+"/login.txt")){
-        const user_token = file_system.fileRead(path_user,"login.txt");
-        if(user_token == token){response = true;}
-    }
-    return response;
-}
-
 router.post('/list_able', async function(req, res) {
     let status_code = 400;
     let response    = "nodata";
@@ -98,31 +88,6 @@ router.post('/list_able', async function(req, res) {
         }
     }
     res.status(status_code).send(response);
-});
-
-router.post('/devicerename', async function(req, res) {
-    let status_code = 400;
-    const user_data = req.body;
-    if(user_data.id!=undefined && user_data.token!=undefined && user_data.type!=undefined && user_data.dvid!=undefined){
-        const path_user = path_data.user()+"/"+user_data.id;
-        if(token_check(user_data.token,user_data.id)){
-            status_code = 200;
-            const list   = file_system.fileRead(path_user,user_data.type+".csv").split("\r\n");
-            let new_list = "";
-            for (let index = 0; index < list.length; index++) {
-                if(index != 0) new_list += "\r\n";
-                if(list[index].split(",")[0] === user_data.dvid){
-                    new_list += user_data.dvid+","+user_data.name;
-                }else{
-                    new_list += list[index];
-                }
-            }
-            file_system.fileMK(path_user,new_list,user_data.type+".csv");
-        }else{
-            status_code = 401;
-        }
-    }
-    res.status(status_code).send();
 });
 
 module.exports = router;

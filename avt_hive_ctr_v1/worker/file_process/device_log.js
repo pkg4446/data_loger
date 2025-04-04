@@ -15,13 +15,15 @@ parentPort.on('message', async (device) => {
     let filename = "";
     if(device.date.getDate()<10) filename += "0";
     filename += device.date.getDate();
-    let file_content = JSON.stringify(device);
 
     if(!file_system.check(path_log)){file_system.folderMK(path_log);}
     
     if(file_system.check(path_device+"/ip.txt")){
         if(file_system.fileRead(path_device,"ip.txt") != device.IP) file_system.fileMK(path_device,device.IP,"ip.txt");
     }else file_system.fileMK(path_device,device.IP,"ip.txt");
+
+    delete device.IP;
+    let file_content = JSON.stringify(device);
 
     file_system.fileMK(path_device,file_content,"lastest.json");
     if(file_system.check(path_log+"/"+filename+".json")){

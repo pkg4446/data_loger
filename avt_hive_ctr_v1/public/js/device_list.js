@@ -174,8 +174,17 @@ function getdata_pump(send_data, device){
         console.log(pump_config);
 
         let HTML_script  = `<div class="unit-info">
-                            <div class="cell" id="${device[0]}" onclick=device_rename("pump","${device[0]}") style="cursor:pointer;">${device[1]}</div>
-                            <div class="cell">${device[0]}</div>`;
+                            <div class="cell header" id="${device[0]}" onclick=device_rename("pump","${device[0]}") style="cursor:pointer;">${device[1]}</div>
+                            <div class="cell header">${device[0]}</div>`;
+
+        if(response[0]!="null"){
+            const today = new Date();
+            today.setHours(today.getHours()-1);
+            const data_date = new Date(pump_data.date);
+
+            
+        }
+
         document.getElementById("unit_"+device[0]).innerHTML = HTML_script;
     });
 }
@@ -203,7 +212,7 @@ function getdata_hive(send_data, device){
         const heat_devid = "heat_"+device[0];
 
         let HTML_script  = `<div class="unit-info">
-                                <div class="cell" id="${device[0]}" onclick=device_rename("device","${device[0]}") style="cursor:pointer;">${device[1]}</div>
+                                <div class="cell" id="${device[0]}" onclick=device_rename("hive","${device[0]}") style="cursor:pointer;">${device[1]}</div>
                                 <div class="cell">${device[0]}</div>`;
         if(response[0]!="null"){
             const device_log    = JSON.parse(response[0]);
@@ -369,7 +378,6 @@ function fetch_list_change(device_list) {
 ////-------------------////
 async function fetch_equipment(init) {
     let HTML_script = "<br>";
-    let pump_list = [];
     // 여기에 실제 서버 URL을 입력하세요
     const today = new Date();
     const post_data = {
@@ -393,13 +401,18 @@ async function fetch_equipment(init) {
         window.location.href = '/web/connect';
     }else{
         const devices = (await pump.text()).split("\r\n");
-        
+        let pump_list = [];
         if(init){
             for (let index = 0; index < devices.length; index++) {
                 const device = devices[index].split(",");
                 pump_list.push(device);
                 HTML_script+= `<div class="unit-section" id="unit_${device[0]}"></div>`;
             }
+            document.getElementById('farm_section_pump').innerHTML = HTML_script;
+            HTML_script = "";
+        }
+        for (let index = 0; index < pump_list.length; index++) {
+            getdata_pump(post_data,pump_list[index]);
         }
     }
 
@@ -426,9 +439,6 @@ async function fetch_equipment(init) {
         }
         for (let index = 0; index < device_list.length; index++) {
             getdata_hive(post_data,device_list[index]);
-        }
-        for (let index = 0; index < pump_list.length; index++) {
-            getdata_pump(post_data,pump_list[index]);
         }
     }
 }
@@ -510,11 +520,10 @@ function fetch_device_rename(type,device_id,device_name) {
         const post_data = {
             id:     localStorage.getItem('user'),
             token:  localStorage.getItem('token'),
-            type:   type,
             dvid:   device_id,
             name:   device_name
         }
-        fetch(window.location.protocol+"//"+window.location.host+"/user/devicerename", {
+        fetch(window.location.protocol+"//"+window.location.host+"/"+type+"/devicerename", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
