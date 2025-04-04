@@ -39,12 +39,12 @@ router.post('/pump', async function(req, res) {
 router.post('/pump_set', async function(req, res) {
     const path_device  = path_data.device("pump")+"/"+req.body.DVC;
     let   file_content = req.body.SET;
-    file_system.fileMK(path_device,file_content,"config_set.csv");
+    file_system.fileMK(path_device,file_content,"device_set.csv");
     file_content += ","+new Date();
-    if(file_system.check(path_device+"/config_set_history.csv")){
-        file_system.fileADD(path_device,"\r\n"+file_content,"config_set_history.csv");
+    if(file_system.check(path_device+"/device_set_history.csv")){
+        file_system.fileADD(path_device,"\r\n"+file_content,"device_set_history.csv");
     }else{
-        file_system.fileMK(path_device,file_content,"config_set_history.csv");
+        file_system.fileMK(path_device,file_content,"device_set_history.csv");
     }
     res.status(201).send("ack");
 });

@@ -4,7 +4,7 @@ const path_data      = require("../../api/path_data");
 const file_data      = require("../../api/file_data");
 
 parentPort.on('message', async (device) => {
-    const   path_device = path_data.pump()+"/"+device.DVC;
+    const   path_device = path_data.device("pump")+"/"+device.DVC;
     delete  device.DVC;
     device.date = new Date();
 

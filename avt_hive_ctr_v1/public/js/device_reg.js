@@ -95,7 +95,7 @@ function fetch_same_ip() {
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token'),
     }
-    fetch(window.location.protocol+"//"+window.location.host+"/hive/list_able", {
+    fetch(window.location.protocol+"//"+window.location.host+"/user/list_able", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

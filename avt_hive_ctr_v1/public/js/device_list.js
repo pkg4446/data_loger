@@ -40,7 +40,7 @@ function device_detail(macaddr,devid) {
     }
 }
 ////-------------------////
-function device_rename(devid) {
+function device_rename(type,devid) {
     if(view_locker){
         Swal.fire({
             title: "장비 이름",
@@ -59,7 +59,7 @@ function device_rename(devid) {
                         icon: "error"
                     });
                 }else{
-                    fetch_device_rename(devid,device_name);
+                    fetch_device_rename(type,devid,device_name);
                 }
             }
         });
@@ -150,21 +150,50 @@ function temp_assist_change(temp_devid,devid) {
     }
 }
 ////-------------------////
-function getdata(send_data, device){
-    const hive_num = 5;
-    send_data.dvid = device[0];
-    fetch(window.location.protocol+"//"+window.location.host+"/hive/config", {
+function getdata_pump(send_data, device){
+    fetch(window.location.protocol+"//"+window.location.host+"/pump/config", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(send_data)
+        body: JSON.stringify({...send_data, dvid:device[0]})
     })
     .then(response => {
         if (response.status==400 || response.status==401) {
             alert_swal("error",'로그인 정보가 없습니다.');
         }else if (response.status==403) {
-            alert_swal("error",'등록되지 않은 장비입니다.');
+            // alert_swal("error",'등록되지 않은 장비입니다.');
+        }
+        return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
+    })
+    .then(data => {
+        const response = data.split("\r\n");
+        const pump_data = JSON.parse(response[0]);
+        const pump_config = JSON.parse(response[1]);
+        console.log(pump_data);
+        console.log(pump_config);
+
+        let HTML_script  = `<div class="unit-info">
+                            <div class="cell" id="${device[0]}" onclick=device_rename("pump","${device[0]}") style="cursor:pointer;">${device[1]}</div>
+                            <div class="cell">${device[0]}</div>`;
+        document.getElementById("unit_"+device[0]).innerHTML = HTML_script;
+    });
+}
+////-------------------////
+function getdata_hive(send_data, device){
+    const hive_num = 5;
+    fetch(window.location.protocol+"//"+window.location.host+"/hive/config", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({...send_data, dvid:device[0]})
+    })
+    .then(response => {
+        if (response.status==400 || response.status==401) {
+            alert_swal("error",'로그인 정보가 없습니다.');
+        }else if (response.status==403) {
+            // alert_swal("error",'등록되지 않은 장비입니다.');
         }
         return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
     })
@@ -174,7 +203,7 @@ function getdata(send_data, device){
         const heat_devid = "heat_"+device[0];
 
         let HTML_script  = `<div class="unit-info">
-                                <div class="cell" id="${device[0]}" onclick=device_rename("${device[0]}") style="cursor:pointer;">${device[1]}</div>
+                                <div class="cell" id="${device[0]}" onclick=device_rename("device","${device[0]}") style="cursor:pointer;">${device[1]}</div>
                                 <div class="cell">${device[0]}</div>`;
         if(response[0]!="null"){
             const device_log    = JSON.parse(response[0]);
@@ -272,7 +301,7 @@ function getdata(send_data, device){
                             </div>`;
         }
         HTML_script+= "</div>"
-        document.getElementById("unit_second_"+device[0]).innerHTML = HTML_script;
+        document.getElementById("unit_"+device[0]).innerHTML = HTML_script;
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -369,7 +398,7 @@ async function fetch_equipment(init) {
             for (let index = 0; index < devices.length; index++) {
                 const device = devices[index].split(",");
                 pump_list.push(device);
-                HTML_script+= `<div class="unit-section" id="unit_second_${device[0]}"></div>`;
+                HTML_script+= `<div class="unit-section" id="unit_${device[0]}"></div>`;
             }
         }
     }
@@ -388,18 +417,18 @@ async function fetch_equipment(init) {
         if(init){
             for (let index = 0; index < devices.length; index++) {
                 const device = devices[index].split(",");
+                if(device[0] == "") continue;
                 device_list.push(device);
-                HTML_script+= `<div class="unit-section" id="unit_second_${device[0]}"></div>`;
+                HTML_script+= `<div class="unit-section" id="unit_${device[0]}"></div>`;
             }
             HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},${null},${null})>벌통 정렬</div>`;
             document.getElementById('farm_section_device').innerHTML = HTML_script;
         }
         for (let index = 0; index < device_list.length; index++) {
-            getdata(post_data,device_list[index]);
+            getdata_hive(post_data,device_list[index]);
         }
         for (let index = 0; index < pump_list.length; index++) {
-            console.log(pump_list[index]);
-            // getdata(post_data,pump_list[index]);
+            getdata_pump(post_data,pump_list[index]);
         }
     }
 }
@@ -438,7 +467,7 @@ function fetch_user_info() {
 function fetch_equipment_disconnect(device_id) {
     if(view_locker){
         Swal.fire({
-            title: "장비 연결",
+            title: "장비 삭제",
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "삭제",
@@ -464,7 +493,7 @@ function fetch_equipment_disconnect(device_id) {
                     }else if (response.status==403) {
                         alert_swal("warning","등록된 장비가 없습니다.");
                     }else if (response.status==200) {
-                        document.getElementById(`unit_second_${device_id}`).innerHTML="";
+                        document.getElementById(`unit_${device_id}`).innerHTML="";
                         alert_swal("success","장비등록을 해제했습니다.");                        
                     }
                 })
@@ -476,15 +505,16 @@ function fetch_equipment_disconnect(device_id) {
     }
 }
 ////-------------------////
-function fetch_device_rename(device_id,device_name) {
+function fetch_device_rename(type,device_id,device_name) {
     if(view_locker){
         const post_data = {
             id:     localStorage.getItem('user'),
             token:  localStorage.getItem('token'),
+            type:   type,
             dvid:   device_id,
             name:   device_name
         }
-        fetch(window.location.protocol+"//"+window.location.host+"/hive/devicerename", {
+        fetch(window.location.protocol+"//"+window.location.host+"/user/devicerename", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
