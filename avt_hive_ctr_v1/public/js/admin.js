@@ -195,7 +195,7 @@ function user_list_view(user_list) {
     HTML_scrpit += "</tbody></table>"
     document.getElementById("user_table").innerHTML = HTML_scrpit;
 }
-function device_list_view(device_list) {
+function device_list_view(dom_element,device_type,device_list) {
     // console.log(device_list);
     let HTML_scrpit = `<table class="data-table"><thead><tr>
     <th>IP</th><th>ID</th><th>firmware</th><th>등록 유저</th></tr></thead><tbody>`;
@@ -219,19 +219,19 @@ function device_list_view(device_list) {
                     HTML_scrpit += `<td></td>`;
                 }
                 HTML_scrpit += `<td>${device_id}</td><td`;
-                if(version_update){HTML_scrpit += ` onclick=firmware_update("${device_id}") style="cursor:pointer;"`;}
+                if(version_update){HTML_scrpit += ` onclick=firmware_update("${device_type}","${device_id}") style="cursor:pointer;"`;}
                 HTML_scrpit += `>${version}</td>`;
-                if(user_id == null){HTML_scrpit  += `<td onclick=device_regist("${device_ip}","${device_id}")`;}
-                else{HTML_scrpit += `<td onclick=device_del("${device_ip}","${device_id}","${user_id}")`;}
+                if(user_id == null){HTML_scrpit  += `<td onclick=device_regist("${device_ip}","${device_type}","${device_id}")`;}
+                else{HTML_scrpit += `<td onclick=device_del("${device_ip}","${device_type}","${device_id}","${user_id}")`;}
                 HTML_scrpit += ` style="cursor:pointer;">${user_id}</td></tr>`;
             }
         }
     }
     HTML_scrpit += "</tbody></table>"
-    document.getElementById("device_table").innerHTML = HTML_scrpit;
+    document.getElementById(dom_element).innerHTML = HTML_scrpit;
 }
 ////-------------------////
-function device_regist(devip,devid) {
+function device_regist(devip,dvtype,dvid) {
     Swal.fire({
         title: "사용자 계정",
         input: "text",
@@ -249,17 +249,18 @@ function device_regist(devip,devid) {
                     icon: "error"
                 });
             }else{
-                fetch_device_change("connect",devip,devid,user_id);
+                fetch_device_change("connect",devip,dvtype,dvid,user_id);
             }
         }
     });
 }
 ////-------------------////
-function fetch_device_change(api,device_ip,device_id,user_id) {
+function fetch_device_change(api,device_ip,device_type,device_id,user_id) {
     const post_data = {
         token:localStorage.getItem('manager'),
         dvid:   device_id,
-        user:   user_id
+        user:   user_id,
+        type:   device_type
     }
     fetch(window.location.protocol+"//"+window.location.host+"/admin/"+api, {
         method: 'POST',
@@ -286,8 +287,9 @@ function fetch_device_change(api,device_ip,device_id,user_id) {
                 alert_swal("info","장비연결을 해지했습니다.");
             }
             if(api != "firmware"){
-                admin_page.device[device_ip][device_id].USER = user_id;
-                device_list_view(admin_page.device);
+                admin_page[device_type][device_ip][device_id].USER = user_id;
+                device_list_view("hive_table","device",admin_page.device);
+                device_list_view("pump_table","pump",admin_page.pump);
             }
         }
     })
@@ -328,10 +330,10 @@ async function secret_code(title) {
     return del_code == input.value;
 }
 ////-------------------////
-function device_del(devip,devid,userid) {
+function device_del(devip,dvtype,dvid,userid) {
     secret_code("연결 해제").then((result) => {
         if(result){
-            fetch_device_change("disconnect",devip,devid,userid);
+            fetch_device_change("disconnect",devip,dvtype,dvid,userid);
         }else{
             Swal.fire({
                 title: "코드가 틀렸습니다.",
@@ -341,10 +343,10 @@ function device_del(devip,devid,userid) {
     })
 }
 ////-------------------////
-function firmware_update(devid) {
+function firmware_update(dvtype,dvid) {
     secret_code("Firmware update").then((result) => {
         if(result){
-            fetch_device_change("firmware",null,devid,null);
+            fetch_device_change("firmware",null,dvtype,dvid,null);
         }else{
             Swal.fire({
                 title: "코드가 틀렸습니다.",
@@ -375,8 +377,10 @@ function data_list() {
                 const res_data = JSON.parse(data);
                 admin_page.user   = res_data.user;
                 admin_page.device = res_data.device;
+                admin_page.pump = res_data.pump;
                 user_list_view(res_data.user);
-                device_list_view(res_data.device);
+                device_list_view("hive_table","device",res_data.device);
+                device_list_view("pump_table","pump",res_data.pump);
             } else {
             }
         })
@@ -386,7 +390,8 @@ function data_list() {
         });
     }else{
         user_list_view(admin_page.user);
-        device_list_view(admin_page.device);
+        device_list_view("hive_table","device",admin_page.device);
+        device_list_view("pump_table","pump",admin_page.pump);
     }
 }
 ////-------------------////

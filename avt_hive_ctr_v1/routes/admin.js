@@ -131,7 +131,7 @@ router.post('/firmware', async function(req, res) {
         status_code = 403;
         if(token_check(admin_data.token)){
             status_code = 200;
-            response = file_system.fileMK(path_data.device("device")+"/"+req.body.dvid,"1",file_data.firmware_update());
+            if(admin_data.type=="device") response = file_system.fileMK(path_data.device("device")+"/"+req.body.dvid,"1",file_data.firmware_update());
         }
     }
     res.status(status_code).send(response);
@@ -140,9 +140,9 @@ router.post('/firmware', async function(req, res) {
 router.post('/connect', async function(req, res) {
     let status_code = 400;
     const admin_data = req.body;
-    if(admin_data.token!=undefined && admin_data.user!=undefined && admin_data.dvid!=undefined){
+    if(admin_data.token!=undefined && admin_data.user!=undefined && admin_data.dvid!=undefined && admin_data.type!=undefined){
         if(token_check(admin_data.token)){
-            status_code = await device.connect(admin_data.user,admin_data.dvid,"벌통");
+            status_code = await device.connect(admin_data.user,admin_data.type,admin_data.dvid,"벌통");
         }else{
             status_code = 406;
         }
@@ -153,9 +153,9 @@ router.post('/connect', async function(req, res) {
 router.post('/disconnect', async function(req, res) {
     let status_code = 400;
     const admin_data = req.body;
-    if(admin_data.token!=undefined && admin_data.user!=undefined && admin_data.dvid!=undefined){
+    if(admin_data.token!=undefined && admin_data.user!=undefined && admin_data.dvid!=undefined && admin_data.type!=undefined){
         if(token_check(admin_data.token)){
-            status_code = await device.disconnect(admin_data.user,admin_data.dvid);
+            status_code = await device.disconnect(admin_data.user,admin_data.type,admin_data.dvid);
         }else{
             status_code = 406;
         }

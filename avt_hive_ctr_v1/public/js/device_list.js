@@ -173,8 +173,8 @@ function getdata_pump(send_data, device){
         console.log(pump_data);
         console.log(pump_config);
 
-        let HTML_script  = `<div class="unit-info">
-                            <div class="cell header" id="${device[0]}" onclick=device_rename("pump","${device[0]}") style="cursor:pointer;">${device[1]}</div>
+        let HTML_script =  `<div class="pump-row">
+                            <div class="cell" id="${device[0]}" onclick=device_rename("pump","${device[0]}") style="cursor:pointer;">${device[1]}</div>
                             <div class="cell header">${device[0]}</div>`;
 
         if(response[0]!="null"){
@@ -182,7 +182,40 @@ function getdata_pump(send_data, device){
             today.setHours(today.getHours()-1);
             const data_date = new Date(pump_data.date);
 
+            const liquid_hight = 300;
+
+            HTML_script += `<div class="cell humidity">급수💧:${liquid_hight-parseInt(pump_data.DATA.sona1)}cm</div>`;
+            HTML_script += `<div class="cell temp-air">사양🍯:${liquid_hight-parseInt(pump_data.DATA.sona2)}cm</div></div>`;
+            HTML_script += ``;
+
+            if(today>data_date){
+                HTML_script+= `<div class="menu-row">
+                                    <div class="cell warning" onclick=fetch_equipment_disconnect("pump",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                    <div class="cell warning">마지막 기록 : ${data_date.getFullYear()}년 ${data_date.getMonth()+1}월 ${data_date.getDate()}일 ${data_date.getHours()}시 ${data_date.getMinutes()}분</div>
+                                </div>`;
+            }
+
+            HTML_script += `<div class="pump-row">`;
+            HTML_script += `<div class="cell temp-warm">온도🌡️</div><div class="cell">${pump_data.DATA.temp}°C</div>
+                            <div class="cell humidity" >습도💧</div><div class="cell">${pump_data.DATA.humi} %</div></div>`;
+
+            HTML_script += `</div><div class="data-row">`;
+            HTML_script += `<div class="cell humidity">급수💧</div>
+                            <div class="cell header">시작</div><div class="cell">${pump_config.set[2]}시</div>
+                            <div class="cell header">종료</div><div class="cell">${pump_config.set[3]}시</div>`;
+
+            HTML_script += `<div class="cell temp-air">사양🍯</div>
+                            <div class="cell header">시작</div><div class="cell">${pump_config.set[2]}시</div>
+                            <div class="cell header">종료</div><div class="cell">${pump_config.set[3]}시</div>`;
             
+            HTML_script += `<div class="cell temp-warm">열선🔥</div>
+                            <div class="cell header">시작</div><div class="cell">${pump_config.set[0]}시</div>
+                            <div class="cell header">종료</div><div class="cell">${pump_config.set[1]}시</div></div>`;
+        }else{
+            HTML_script += `<div class="menu-row">
+                                <div class="cell warning" onclick=fetch_equipment_disconnect("pump",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                <div class="cell warning">마지막 기록 : ${data_date.getFullYear()}년 ${data_date.getMonth()+1}월 ${data_date.getDate()}일 ${data_date.getHours()}시 ${data_date.getMinutes()}분</div>
+                            </div>`;
         }
 
         document.getElementById("unit_"+device[0]).innerHTML = HTML_script;
@@ -261,7 +294,7 @@ function getdata_hive(send_data, device){
             HTML_script+= `;cursor:pointer;">가온 평균:<span id="${gorl_devid}">${Math.round(average_value/hive_num)-calibration}</span>°C</div></div>`;
             if(today>data_date){
                 HTML_script+= `<div class="menu-row">
-                                    <div class="cell warning" onclick=fetch_equipment_disconnect('${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                    <div class="cell warning" onclick=fetch_equipment_disconnect("hive",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
                                     <div class="cell warning">마지막 기록 : ${data_date.getFullYear()}년 ${data_date.getMonth()+1}월 ${data_date.getDate()}일 ${data_date.getHours()}시 ${data_date.getMinutes()}분</div>
                                 </div>`;
             }
@@ -305,7 +338,7 @@ function getdata_hive(send_data, device){
                                 <div class="cell" onclick=goal_temp_change("${gorl_devid}","${device[0]}",5,null)>목표:<span id="${gorl_devid}">0</span>°C</div>
                             </div>
                             <div class="menu-row">
-                                <div class="cell warning" onclick=fetch_equipment_disconnect('${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                <div class="cell warning" onclick=fetch_equipment_disconnect("hive",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
                                 <div class="cell warning">데이터가 없음</div>
                             </div>`;
         }
@@ -393,13 +426,23 @@ async function fetch_equipment(init) {
         body: JSON.stringify(post_data)
     });
 
+    const hive = await fetch(window.location.protocol+"//"+window.location.host+"/hive/list", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(post_data)
+    });
+
     if (pump.status==400 || pump.status==401) {
         alert_swal("error",'로그인 정보가 없습니다.');
         window.location.href = '/web/login';
-    }else if (pump.status==403) {
+    }else if (pump.status==403 && hive.status==403) {
         alert_swal("error",'등록된 장비가 없습니다.');
         window.location.href = '/web/connect';
-    }else{
+    }
+
+    if (pump.status==200) {
         const devices = (await pump.text()).split("\r\n");
         let pump_list = [];
         if(init){
@@ -415,14 +458,6 @@ async function fetch_equipment(init) {
             getdata_pump(post_data,pump_list[index]);
         }
     }
-
-    const hive = await fetch(window.location.protocol+"//"+window.location.host+"/hive/list", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(post_data)
-    });
     
     if (hive.status==200) {
         const devices = (await hive.text()).split("\r\n");
@@ -474,7 +509,7 @@ function fetch_user_info() {
     });
 }
 ////-------------------////
-function fetch_equipment_disconnect(device_id) {
+function fetch_equipment_disconnect(type,device_id) {
     if(view_locker){
         Swal.fire({
             title: "장비 삭제",
@@ -489,7 +524,7 @@ function fetch_equipment_disconnect(device_id) {
                     token:  localStorage.getItem('token'),
                     dvid:   device_id
                 }
-                fetch(window.location.protocol+"//"+window.location.host+"/hive/disconnect", {
+                fetch(window.location.protocol+"//"+window.location.host+"/"+type+"/disconnect", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

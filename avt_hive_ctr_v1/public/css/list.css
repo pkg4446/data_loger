@@ -54,6 +54,13 @@ cursor: pointer;
     margin-bottom: 10px;
 }
 
+.pump-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
 .data-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -133,6 +140,9 @@ cursor: pointer;
 
 @media (max-width: 768px) {
     .unit-info {
-        grid-template-columns: auto;
+        grid-template-columns: repeat(2, auto);
+    }
+    .pump-row {
+        grid-template-columns: repeat(2, auto);
     }
 }
