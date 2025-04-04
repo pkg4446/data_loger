@@ -198,7 +198,7 @@ function user_list_view(user_list) {
 function device_list_view(dom_element,device_type,device_list) {
     // console.log(device_list);
     let HTML_scrpit = `<table class="data-table"><thead><tr>
-    <th>IP</th><th>ID</th><th>firmware</th><th>등록 유저</th></tr></thead><tbody>`;
+    <th>IP : ${device_type}</th><th>ID</th><th>firmware</th><th>등록 유저</th></tr></thead><tbody>`;
     for (const device_ip in device_list) {
         if(device_ip != "ver"){
             let ip_once = true;
