@@ -107,8 +107,8 @@ router.post('/config', async function(req, res) {
                 if(file_system.check(path_device+"/device_set.csv")){
                     response_added.dv = file_system.fileRead(path_device,"device_set.csv").split(",");
                 }
-                if(file_system.check(path_device+"/config_set.csv")){
-                    response_added.set = file_system.fileRead(path_device,"config_set.csv").split(",");
+                if(file_system.check(path_device+"/config.csv")){
+                    response_added.set = file_system.fileRead(path_device,"config.csv").split(",");
                 }
                 response += "\r\n"+JSON.stringify(response_added);
             }else{
