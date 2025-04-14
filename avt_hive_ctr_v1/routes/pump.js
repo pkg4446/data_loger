@@ -123,4 +123,34 @@ router.post('/config', async function(req, res) {
     res.status(status_code).send(response);
 });
 
+router.post('/setup', async function(req, res) {
+    let status_code = 400;
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.index!=undefined && user_data.time!=undefined){
+        const path_device = path_data.device("pump")+"/"+user_data.dvid;
+        if(token_check(user_data.token,user_data.id)){
+            if(file_system.check(path_device+"/owner.txt")&&(file_system.fileRead(path_device,"owner.txt")==user_data.id)){
+                status_code = 200;
+                let file_data;
+                if(file_system.check(path_device+"/config.csv")){
+                    file_data = file_system.fileRead(path_device,"config.csv").split(",");
+                }else{
+                    file_data = ['12','12','12','12','12','12'];
+                }
+                file_data[user_data.index] = user_data.time;
+                let config_data = file_data[0];
+                for (let index = 1; index < file_data.length; index++) {
+                    config_data += ","+file_data[index];
+                }
+                file_system.fileMK(path_device,config_data,"config.csv");
+            }else{
+                status_code = 403;
+            }
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send();
+});
+
 module.exports = router;

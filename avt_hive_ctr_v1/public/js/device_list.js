@@ -66,7 +66,48 @@ function device_rename(type,devid) {
     }
 }
 ////-------------------////
-function goal_temp_change(gorl_devid,devid,index_num,set_temp) {
+function pump_config_set(title,macaddr,index,code) {
+    if(view_locker){
+        const init_value = document.getElementById(macaddr+code).innerText;
+        Swal.fire({
+            title: title,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "설정",
+            cancelButtonText:  "취소",
+            input: "range",
+            inputLabel: "시간",
+            inputAttributes: {
+                min: 0,
+                max: 23,
+                step: 1
+        },
+            inputValue: init_value.replace("시","")            
+        }).then((result) => {
+            if (result.isConfirmed){
+                const post_data = {
+                    id:     localStorage.getItem('user'),
+                    token:  localStorage.getItem('token'),
+                    dvid:   macaddr,
+                    index:  index,
+                    time:  result.value
+                }
+                console.log(post_data);
+                fetch(window.location.protocol+"//"+window.location.host+"/pump/setup", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(post_data)
+                }).then(response => {
+                    if(response.status==200){document.getElementById(macaddr+code).innerText = result.value+"시";}
+                })
+            }
+        });
+    }
+}
+////-------------------////
+function goal_temp_change(gorl_devid,devid,index_num) {
     if(view_locker){
         let init_value = 0;
         if(index_num == 5 ) init_value = parseInt(document.getElementById(gorl_devid).innerText);
@@ -203,16 +244,16 @@ function getdata_pump(send_data, device){
 
             HTML_script += `</div><div class="data-row">`;
             HTML_script += `<div class="cell humidity">급수💧</div>
-                            <div class="cell header">시작</div><div class="cell">${pump_config.set[2]}시</div>
-                            <div class="cell header">종료</div><div class="cell">${pump_config.set[3]}시</div>`;
+                            <div class="cell header" onclick=pump_config_set("급수💧시작","${device[0]}",2,"ws")>시작</div><div id="${device[0]}ws" class="cell">${pump_config.set[2]}시</div>
+                            <div class="cell header" onclick=pump_config_set("급수💧종료","${device[0]}",3,"we")>종료</div><div id="${device[0]}we" class="cell">${pump_config.set[3]}시</div>`;
 
             HTML_script += `<div class="cell temp-air">사양🍯</div>
-                            <div class="cell header">시작</div><div class="cell">${pump_config.set[2]}시</div>
-                            <div class="cell header">종료</div><div class="cell">${pump_config.set[3]}시</div>`;
+                            <div class="cell header" onclick=pump_config_set("사양🍯시작","${device[0]}",4,"ss")>시작</div><div id="${device[0]}ss" class="cell">${pump_config.set[4]}시</div>
+                            <div class="cell header" onclick=pump_config_set("사양🍯종료","${device[0]}",5,"se")>종료</div><div id="${device[0]}se" class="cell">${pump_config.set[5]}시</div>`;
             
             HTML_script += `<div class="cell temp-warm">열선🔥</div>
-                            <div class="cell header">시작</div><div class="cell">${pump_config.set[0]}시</div>
-                            <div class="cell header">종료</div><div class="cell">${pump_config.set[1]}시</div></div>`;
+                            <div class="cell header" onclick=pump_config_set("열선🔥시작","${device[0]}",0,"hs")>시작</div><div id="${device[0]}hs" class="cell">${pump_config.set[0]}시</div>
+                            <div class="cell header" onclick=pump_config_set("열선🔥종료","${device[0]}",1,"he")>종료</div><div id="${device[0]}he" class="cell">${pump_config.set[1]}시</div></div>`;
         }else{
             HTML_script += `<div class="menu-row">
                                 <div class="cell warning" onclick=fetch_equipment_disconnect("pump",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
