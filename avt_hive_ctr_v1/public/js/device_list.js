@@ -167,11 +167,13 @@ function getdata_pump(send_data, device){
         return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
     })
     .then(data => {
+        console.log("data",data);
         const response = data.split("\r\n");
         const pump_data = JSON.parse(response[0]);
         const pump_config = JSON.parse(response[1]);
         console.log(pump_data);
         console.log(pump_config);
+        if(pump_config.set == null){pump_config.set=[12,12,12,12,12,12];}
 
         let HTML_script =  `<div class="pump-row">
                             <div class="cell" id="${device[0]}" onclick=device_rename("pump","${device[0]}") style="cursor:pointer;">${device[1]}</div>
