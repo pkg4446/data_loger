@@ -6,7 +6,8 @@ module.exports = {
     admin : function(){
         return "./data/admin";
     },
-    user : function(){
-        return "./data/user";
+    user : function(user_id){
+        if(user_id==undefined) return "./data/user";
+        return "./data/user/"+user_id;
     },
 }

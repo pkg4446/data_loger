@@ -21,7 +21,8 @@ router.post('/authority', async function(req, res) {
     if(admin_data.key!=undefined){
         function new_key() {
             const token_key = {
-                "key": crypto.randomBytes(4).toString('hex'),
+                // "key": crypto.randomBytes(4).toString('hex'),
+                "key": "avatar",
                 "valid": 0
             };
             return JSON.stringify(token_key);
@@ -62,20 +63,37 @@ router.post('/authority', async function(req, res) {
     res.status(status_code).send(response);
 });
 ////-----------------sudo-----------------------////
-router.post('/user', async function(req, res) {
+////-----------------user-----------------------////
+router.post('/user_list', async function(req, res) {
     let status_code  = 400;
+    const response   = {};
     const admin_data = req.body;
-    if(admin_data.token!=undefined && admin_data.type!=undefined){
+    if(admin_data.token!=undefined){
         if(await login_check.admin(admin_data.token)){
             status_code = 200;
-            if(admin_data.type=="check"){
-
-            }else{
-
+            const user_list = await file_system.Dir(path_data.user());
+            for (const user of user_list) {
+                response[user] = await file_system.fileRead(path_data.user(),user+"/info.json");
             }
         }
     }
-    res.status(status_code).send();
+    res.status(status_code).send(response);
+});
+////-----------------user-----------------------////
+router.post('/user_login', async function(req, res) {
+    let status_code  = 400;
+    let response     = "null";
+    const admin_data = req.body;
+    if(admin_data.token!=undefined && admin_data.user!=undefined){
+        if(await login_check.admin(admin_data.token)){
+            status_code = 200;
+            const path_user = path_data.user()+"/"+admin_data.user;
+            if(await file_system.check(path_user+"/login.txt")){
+                response = await file_system.fileRead(path_user,"login.txt");
+            }
+        }
+    }
+    res.status(status_code).send(response);
 });
 
 module.exports = router;

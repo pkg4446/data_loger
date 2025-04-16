@@ -21,7 +21,7 @@ module.exports = {
 
     user : async function(token,user_id){
         let response = false;
-        const path_user = path_data.user()+"/"+user_id;
+        const path_user = path_data.user(user_id);
         if(await file_system.check(path_user+"/login.txt")){
             const user_token = await file_system.fileRead(path_user,"login.txt");
             if(user_token == token){response = true;}
@@ -31,7 +31,7 @@ module.exports = {
 
     gender: async function(user_id){
         let response = "?";
-        const path_user = path_data.user()+"/"+user_id;
+        const path_user = path_data.user(user_id);
         if(await file_system.check(path_user+"/gender.txt")){
             const user_token = await file_system.fileRead(path_user,"login.txt");
             if(user_token == token){response = true;}

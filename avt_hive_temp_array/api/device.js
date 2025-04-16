@@ -23,7 +23,7 @@ module.exports = {
 
     connect: async function(user, type, dvid, name){
         let response = 401;
-        const path_user   = path_data.user()+"/"+user;
+        const path_user   = path_data.user(user);
         const path_device = path_data.device(type)+"/"+dvid;
         if(await file_system.check(path_user) && await file_system.check(path_device)){
             if(await file_system.check(path_device+"/owner.txt")){
@@ -53,7 +53,7 @@ module.exports = {
 
     disconnect: async function(user, type, dvid){
         let response = 401;
-        const path_user   = path_data.user()+"/"+user;
+        const path_user   = path_data.user(user);
         const path_device = path_data.device(type)+"/"+dvid;
 
         if(await file_system.check(path_device+"/owner.txt")){

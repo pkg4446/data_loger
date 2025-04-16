@@ -10,7 +10,7 @@ router.post('/login', async function(req, res) {
     let response     = "nodata";
     const login_data = req.body;
     if(login_data.id!=undefined&&login_data.pass!=undefined){
-        const path_user = path_data.user()+"/"+login_data.id;
+        const path_user = path_data.user(login_data.id);
         if(await file_system.check(path_user+"/config.csv")){
             const user_data = await file_system.fileRead(path_user,"config.csv");
             const user_config = user_data.split(",");
@@ -37,7 +37,7 @@ router.post('/info', async function(req, res) {
     let response     = "nodata";
     const login_data = req.body;
     if(login_data.id!=undefined&&login_data.token!=undefined){
-        const path_user = path_data.user()+"/"+login_data.id;
+        const path_user = path_data.user(login_data.id);
         if(await login_check.user(login_data.token,login_data.id)){
             status_code = 200;
             response = await file_system.fileRead(path_user,"info.json");
@@ -50,7 +50,7 @@ router.post('/info_modify', async function(req, res) {
     let status_code  = 400;
     const user_data = req.body;
     if(user_data.id!=undefined&&user_data.token!=undefined, user_data.info){
-        const path_user = path_data.user()+"/"+user_data.id;
+        const path_user = path_data.user(user_data.id);
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
             await file_system.fileMK(path_user,JSON.stringify(user_data.info),"info.json");
@@ -64,7 +64,7 @@ router.post('/join', async function(req, res) {
     const join_data = req.body;
     if(join_data.id!=undefined && join_data.pass!=undefined && join_data.check!=undefined){
         status_code = 403;
-        const   path_user = path_data.user()+"/"+join_data.id;
+        const   path_user = path_data.user(join_data.id);
         if(await file_system.check(path_user)){
             status_code = 406;
         }else if(join_data.pass == join_data.check){

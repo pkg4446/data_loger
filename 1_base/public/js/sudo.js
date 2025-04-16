@@ -23,7 +23,7 @@ async function admin_check() {
     else{dashboard();}
 }
 ////--------------------------------------------------------------------////
-function alert_swal(icon,title) {
+async function alert_swal(icon,title) {
     Swal.fire({
         position: "top",
         icon:   icon,
@@ -48,80 +48,49 @@ function ascii() {
 ////-------------------////
 function user_login(user) {
     if(user == localStorage.getItem('user')){
-        alert_swal("info",user + " : Checked");
+        alert_swal("info",user + "로 로그인 중입니다.");
     }else{
         Swal.fire({
             position: "top",
             icon:   "question",
-            title:  user+" 체크",
+            title:  user+"로 로그인 하시겠습니까?",
             showCancelButton: true,
             confirmButtonText: "확인",
             cancelButtonText:  "취소"
-        }).then((result)=>{
+        }).then(async(result)=>{
             if(result.isConfirmed){
-                fetch(window.location.protocol+"//"+window.location.host+"/admin/superuser", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        token:  localStorage.getItem('manager'),
-                        user:   user
-                    })
-                }).then(response => {
-                    if (response.status==400) {
-                        throw new Error('관리자 TOKEN이 누락됐습니다.');
-                    }else if (response.status==403) {
-                        throw new Error('TOKEN이 유효하지 않습니다.');
-                    }
-                    return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
-                })
-                .then(data => {
-                    if (data != "fail") {
+                const respose = await fetchData("admin/user_login",{token:localStorage.getItem('manager'),user:user});
+                if (respose.status==400 || respose.status==403) {
+                    alert_swal("error","관리자 접속 오류가 발생했습니다.").then(()=>{admin_logout();});
+                }else if (respose.status==200) {
+                    const data = await respose.text();
+                    if (data != "null") {
                         localStorage.setItem('user', user);
                         localStorage.setItem('token', data);
-                        Swal.fire({
-                            position: "top",
-                            icon:   "success",
-                            title:  user + ": Checked",
-                            showConfirmButton: false,
-                            timer:  1500
-                        });
-                    } else {}
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    Swal.fire({
-                        position: "top",
-                        icon:   "error",
-                        title:  '관리자 접속 오류가 발생했습니다.',
-                        text:   error,
-                        showConfirmButton: false,
-                        timer:  1500
-                    }).then(() => {
-                        admin_authority();
-                    });
-                });
+                        alert_swal("success",user + "로 로그인 되었습니다.");
+                    } else {
+                        alert_swal("warning",user + "의 키가 없습니다.");
+                    }
+                }
             }
         });
     }
 }
 ////-------------------////
-function dashboard() {
+async function dashboard() {
     HTML_scrpit = `<table class="data-table"><thead><tr>
-    <th>ID</th><th>이름</th><th>농장</th><th>주소</th><th>전화</th><th>가입날짜</th>
+    <th>ID</th><th>이름</th><th>농장</th><th>주소</th><th>전화</th>
     </tr></thead><tbody>`;
-    const user_list = [];
+    const user_list = await (await fetchData("admin/user_list",{token:localStorage.getItem('manager')})).json();
+
     for (const user_id in user_list) {
-        const user_info = user_list[user_id];
-        const user_date = new Date(user_info.date);
+        const user_info = JSON.parse(user_list[user_id]);
         HTML_scrpit += `<tr onclick=user_login("${user_id}") style="cursor:pointer;">
             <td>${user_id}</td>
             <td>${user_info.name}</td>
             <td>${user_info.farm}</td>
             <td>${user_info.addr}</td>
             <td>${user_info.tel}</td>
-            <td>${user_date.toISOString().substring(0, 10)}</td>
         </tr>`;
     }
     HTML_scrpit += "</tbody></table>"
