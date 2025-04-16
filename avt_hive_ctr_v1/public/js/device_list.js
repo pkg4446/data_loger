@@ -251,9 +251,9 @@ function getdata_pump(send_data, device){
                             <div class="cell header" onclick=pump_config_set("사양🍯시작","${device[0]}",4,"ss")>시작</div><div id="${device[0]}ss" class="cell">${pump_config.set[4]}시</div>
                             <div class="cell header" onclick=pump_config_set("사양🍯종료","${device[0]}",5,"se")>종료</div><div id="${device[0]}se" class="cell">${pump_config.set[5]}시</div>`;
             
-            HTML_script += `<div class="cell temp-warm">열선🔥</div>
-                            <div class="cell header" onclick=pump_config_set("열선🔥시작","${device[0]}",0,"hs")>시작</div><div id="${device[0]}hs" class="cell">${pump_config.set[0]}시</div>
-                            <div class="cell header" onclick=pump_config_set("열선🔥종료","${device[0]}",1,"he")>종료</div><div id="${device[0]}he" class="cell">${pump_config.set[1]}시</div></div>`;
+            // HTML_script += `<div class="cell temp-warm">열선🔥</div>
+            //                 <div class="cell header" onclick=pump_config_set("열선🔥시작","${device[0]}",0,"hs")>시작</div><div id="${device[0]}hs" class="cell">${pump_config.set[0]}시</div>
+            //                 <div class="cell header" onclick=pump_config_set("열선🔥종료","${device[0]}",1,"he")>종료</div><div id="${device[0]}he" class="cell">${pump_config.set[1]}시</div></div>`;
         }else{
             HTML_script += `<div class="menu-row">
                                 <div class="cell warning" onclick=fetch_equipment_disconnect("pump",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
