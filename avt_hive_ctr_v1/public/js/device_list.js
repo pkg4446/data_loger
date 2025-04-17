@@ -225,10 +225,14 @@ function getdata_pump(send_data, device){
             today.setHours(today.getHours()-1);
             const data_date = new Date(pump_data.date);
 
-            const liquid_hight = 300;
+            const liquid_hight = 60;
+            let level_water = liquid_hight-parseInt(pump_data.DATA.sona1);
+            if(level_water < 0) level_water = 0;
+            let level_honey = liquid_hight-parseInt(pump_data.DATA.sona2);
+            if(level_honey < 0) level_honey = 0;
 
-            HTML_script += `<div class="cell humidity">급수💧:${liquid_hight-parseInt(pump_data.DATA.sona1)}cm</div>`;
-            HTML_script += `<div class="cell temp-air">사양🍯:${liquid_hight-parseInt(pump_data.DATA.sona2)}cm</div></div>`;
+            HTML_script += `<div class="cell humidity">급수💧:${level_water*2} L</div>`;
+            HTML_script += `<div class="cell temp-air">사양🍯:${level_honey*2} L</div></div>`;
             HTML_script += ``;
 
             if(today>data_date){
