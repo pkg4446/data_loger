@@ -350,11 +350,13 @@ function App() {
         };
 
         // lastData나 config가 아직 로드되지 않은 경우 처리
-        if (!lastData || !config.goal) {
+        if (!lastData) {
             return React.createElement('div', { className: 'card' }, 
                 React.createElement('p', null, '데이터를 불러오는 중...')
             );
         }
+        if(config.goal == undefined){config.goal = "?";}
+        if(config.run  == undefined){config.run = false;}
 
         const state_goal = tempGoal == config.goal ? tempGoal : config.goal+"°C➝"+tempGoal;
         const state_use = heaterUse == config.run ? heat_state_str(heaterUse) : heat_state_str(config.run)+"➝"+heat_state_str(heaterUse);
