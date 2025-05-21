@@ -14,7 +14,8 @@ async function fn_path_log(path_device,log_date,device_ip) {
 
     if(log_date.getMonth()<10) path_log += "0";
     path_log += log_date.getMonth();
-    
+
+    if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}    
     return path_log;
 }
 
@@ -103,8 +104,7 @@ router.post('/hive', async function(req, res) {
             const filename = fn_file_name(log_date);
             const file_content = JSON.stringify({...req.body.DATA, date:log_date});
             await fn_save_log(path_device,path_log,filename,file_content);
-            response = config(req.body.DVC,path_device);
-
+            response = await config(req.body.DVC,path_device);
         }else if(req.body.API == "mod"){
             await modify(path_device,req.body.DATA);
 
@@ -131,7 +131,7 @@ router.post('/hub', async function(req, res) {
             const filename = fn_file_name(log_date);
             const file_content = JSON.stringify({...req.body.DATA, date:log_date});
             await fn_save_log(path_device,path_log,filename,file_content);
-            response = config(req.body.DVC,path_device);
+            response = await config(req.body.DVC,path_device);
 
         }else if(req.body.API == "mod"){
             await modify(path_device,req.body.DATA);

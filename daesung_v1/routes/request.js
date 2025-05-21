@@ -28,6 +28,50 @@ router.post('/last', async function(req, res) {
     res.status(status_code).send(response);
 });
 
+router.post('/config', async function(req, res) {
+    let status_code = 400;
+    let response    = {};
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined){
+        if(await login_check.user(user_data.token,user_data.id)){
+            status_code = 200;
+            const path_device = path_data.device(user_data.type)+"/"+user_data.dvid;
+            if(await file_system.check(path_device+"/config.json")){
+                response = JSON.parse(await file_system.fileRead(path_device,"config.json"));
+            }
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send(response);
+});
+
+router.post('/config_set', async function(req, res) {
+    let status_code = 400;
+    let response    = {};
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined && user_data.config!=undefined){
+        if(await login_check.user(user_data.token,user_data.id)){
+            const path_device   = path_data.device(user_data.type)+"/"+user_data.dvid;
+            if(await file_system.fileRead(path_device,"owner.txt") == user_data.id){
+                status_code = 200;
+                if(await file_system.check(path_device+"/config.json")){
+                    const device_config = JSON.parse(await file_system.fileRead(path_device,"config.json"));
+                    for (const key in user_data.config) {
+                        device_config[key] = user_data.config[key];
+                    }
+                    await file_system.fileMK(path_device,JSON.stringify(device_config),"config.json");
+                }else{
+                    await file_system.fileMK(path_device,JSON.stringify(user_data.config),"config.json");
+                }
+            }
+        }else{
+            status_code = 401;
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 router.post('/log', async function(req, res) {
     let status_code = 400;
     let response    = "nodata";
@@ -36,6 +80,7 @@ router.post('/log', async function(req, res) {
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
             let path_device = path_data.device(user_data.type)+"/"+user_data.dvid+"/"+user_data.date[0]+"/";
+            
             if(user_data.date[1]<10) path_device += "0";
             path_device += user_data.date[1];
 
@@ -156,7 +201,6 @@ router.post('/arrange', async function(req, res) {
         // const   path_user   = path_data.user()+"/"+user_data.id;
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
-            console.log(user_data.data);
             let new_list = "";
             // file_system.fileMK(path_user,new_list,"device.csv");
         }else{

@@ -8,6 +8,7 @@ async function equipment() {
         const [devices, setDevices] = useState({
             list: [],  // 원본 장비 데이터 목록 
             hub: [],   // 처리된 허브 장비 데이터
+            hive: [],  // 처리된 벌통 장비 데이터
             act: []    // 처리된 액트 장비 데이터
         });
         
@@ -34,15 +35,20 @@ async function equipment() {
                 const updatedDevices = {
                     list: filteredList,
                     hub: [],
+                    hive: [],
                     act: []
                 };
                 
                 // 각 장비 처리
                 for (const device of filteredList) {
                     const status = device.split(',');
+                    console.log(status);
                     if (status[1] === "hub") {
                         const hubDevice = await processHubDevice(status, sendData);
                         updatedDevices.hub.push(hubDevice);
+                    } else if (status[1] === "hive") {
+                        const hiveDevice = await processHiveDevice(status, sendData);
+                        updatedDevices.hive.push(hiveDevice);
                     } else if (status[1] === "act") {
                         const actDevice = await processActDevice(status, sendData);
                         updatedDevices.act.push(actDevice);
@@ -65,13 +71,13 @@ async function equipment() {
             try {
                 const response = await fetchData("req_hub/info", hubSendData);
                 const list_hub = await response.json();
-                let  list_name = null
+                let list_name = null;
                 if(list_hub["list"] != null) list_name = JSON.parse(list_hub["list"]);
                 
                 for (const child_type in list_hub) {
                     if(child_type !== "list") {
-                        const child_list = list_hub[child_type];
-                        console.log(list_hub);
+                        const child_list = list_hub[child_type];                       
+
                         let type_name = "벌통";
                         for (const child in child_list) {
                             const child_name = (list_name!=null&&list_name[child_type][child]!= undefined)?list_name[child_type][child]:"새 장치";
@@ -93,6 +99,7 @@ async function equipment() {
                                     const data_date = new Date(child_data.date);
                                     const date_str = `${data_date.getFullYear()}/${data_date.getMonth()+1}/${data_date.getDate()},${data_date.getHours()}:${data_date.getMinutes()}:${data_date.getSeconds()}`;
                                     
+                                    console.log(child);
                                     if(child_data.runt == 0) child_data.runt = 1;
                                     hub_child.push(
                                         React.createElement("div", {className: "device-child", key: `${status[0]}-${child}`},
@@ -169,6 +176,76 @@ async function equipment() {
             }
         }
         
+        // Hive 장비 처리 함수
+        async function processHiveDevice(status, sendData) {
+            const hiveSendData = {...sendData, type: "hive", dvid: status[0]};
+            
+            try {
+                const response = await fetchData("request/last", hiveSendData);
+                const last_data = await response.json();
+                const data_date = new Date(last_data.date);
+                const date_str = `${data_date.getFullYear()}/${data_date.getMonth()+1}/${data_date.getDate()},${data_date.getHours()}:${data_date.getMinutes()}:${data_date.getSeconds()}`;
+                
+                console.log("Hive device data:", last_data, status[0]);
+
+                return React.createElement("div", {className: "device-table", key: status[0]}, [
+                    React.createElement("div", {
+                        className: "device-header", 
+                        onClick: () => {location.href = "/web/nest/"+status[0]}
+                    }, status[2] + " 🍯 벌통"),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {className: "device-label"}, "ID"),
+                        React.createElement("div", {className: "device-value"}, status[0].replaceAll("_", ":"))
+                    ]),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {className: "device-label"}, "시간"),
+                        React.createElement("div", {className: "device-value"}, date_str),
+                    ]),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {className: "device-label"}, "온도🌡️"),
+                        React.createElement("div", {className: "device-value"}, last_data.temp + "°C"),
+                    ]),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {className: "device-label"}, "습도💧"),
+                        React.createElement("div", {className: "device-value"}, last_data.humi + " %"),
+                    ]),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {className: "device-label"}, "가온🔥"),
+                        React.createElement("div", {className: "device-value"}, Math.round((last_data.work/last_data.runt)*40) + " W"),
+                    ]),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {
+                            className: "device-button",
+                            onClick: () => unconnectDevice(status[1], status[0])
+                        }, "장비삭제"),
+                        React.createElement("div", {
+                            className: "device-button",
+                            onClick: () => renameDevice(status[1], status[0])
+                        }, "이름변경")
+                    ])
+                ]);
+            } catch (error) {
+                console.error("벌통 장비 처리 중 오류 발생:", error);
+                return React.createElement("div", {className: "device-table", key: status[0]}, [
+                    React.createElement("div", {className: "device-header"}, status[2] + " 🍯 벌통 (데이터 로드 실패)"),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {className: "device-label"}, "ID"),
+                        React.createElement("div", {className: "device-value"}, status[0].replaceAll("_", ":"))
+                    ]),
+                    React.createElement("div", {className: "device-row"}, [
+                        React.createElement("div", {
+                            className: "device-button",
+                            onClick: () => unconnectDevice(status[1], status[0])
+                        }, "장비삭제"),
+                        React.createElement("div", {
+                            className: "device-button",
+                            onClick: () => renameDevice(status[1], status[0])
+                        }, "이름변경")
+                    ])
+                ]);
+            }
+        }
+
         // Act 장비 처리 함수
         async function processActDevice(status, sendData) {
             const actSendData = {...sendData, type: "act", dvid: status[0]};
@@ -329,10 +406,14 @@ async function equipment() {
                                 return !(parts[0] === dvid && parts[1] === type);
                             });
                             
-                            // hub 또는 act 배열에서 해당 장비 제거
+                            // 각 장비 타입별 배열에서 해당 장비 제거
                             const updatedHubDevices = type === "hub" 
                                 ? devices.hub.filter(device => device.key !== dvid)
                                 : devices.hub;
+                                
+                            const updatedHiveDevices = type === "hive" 
+                                ? devices.hive.filter(device => device.key !== dvid)
+                                : devices.hive;
                                 
                             const updatedActDevices = type === "act" 
                                 ? devices.act.filter(device => device.key !== dvid)
@@ -342,6 +423,7 @@ async function equipment() {
                             setDevices({
                                 list: updatedList,
                                 hub: updatedHubDevices,
+                                hive: updatedHiveDevices,
                                 act: updatedActDevices
                             });
                             
@@ -372,6 +454,16 @@ async function equipment() {
                     className: "dashboard",
                     key: "hub-container"
                 }, devices.hub)
+            );
+        }
+        
+        // hive 장비 컨테이너 추가
+        if (devices.hive.length > 0) {
+            container.push(
+                React.createElement("div", {
+                    className: "dashboard",
+                    key: "hive-container"
+                }, devices.hive)
             );
         }
         

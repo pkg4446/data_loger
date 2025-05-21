@@ -26,22 +26,14 @@ function App() {
     async function fetchDataForDate(date) {
         setIsLoading(true);
         try {
-            // 경로와 파일명을 선택한 날짜 기준으로 포맷
-            let file_path = date.getFullYear() + "/";
-            if (date.getMonth() < 10) file_path += "0";
-            file_path += date.getMonth();
-
-            let file_name = date.getDate() < 10 ? "0" : "";
-            file_name += date.getDate();
-            const key = file_path+"/"+file_name;
+            const key = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
             // 선택한 날짜의 로그 데이터 가져오기
             if(log_data[key]==undefined){
                 log_data[key] = await (await fetchData("request/log", {
                     ...sendData,
-                    hub: pathname_parse[0],
                     type: "hive",
-                    dvid: pathname_parse[1],
-                    data: { path: file_path, name: file_name }
+                    dvid: pathname_parse,
+                    date: [date.getFullYear(), date.getMonth(), date.getDate()]
                 })).json();
                 if (log_data[key][0] == undefined) log_data[key] = [];
             }
@@ -79,26 +71,27 @@ function App() {
         async function initialLoad() {
             try {
                 // 장비 이름 가져오기
-                const hive_name = await (await fetchData("req_hub/child", {
-                    ...sendData,
-                    hub: pathname_parse[0],
-                    type: "hive",
-                    dvid: pathname_parse[1]
-                })).json();
-                setChildName(hive_name.name !== undefined ? hive_name.name : pathname_parse[1]);
+                let hive_name = pathname_parse;
+                const device_list = await (await fetchData("request/list", {
+                    ...sendData
+                })).text();
+                for (const device of device_list.split("\n")) {
+                    const device_info = device.split(",");
+                    if(device_info[0] == pathname_parse) hive_name = device_info[2];
+                }
+                setChildName(hive_name);
                 // 장비 설정 가져오기
-                const hive_config = await (await fetchData("req_hub/child_config", {
+                const hive_config = await (await fetchData("request/config", {
                     ...sendData,
-                    hub: pathname_parse[0],
                     type: "hive",
-                    dvid: pathname_parse[1]
+                    dvid: pathname_parse
                 })).json();
                 setConfig(hive_config);
                 // 최신 데이터 기록 가져오기
                 const last_data = await (await fetchData("request/last", {
                     ...sendData,
-                    type: "hub",
-                    dvid: pathname_parse[0] + "/hive/" + pathname_parse[1]
+                    type: "hive",
+                    dvid: pathname_parse
                 })).json();
 
                 setLastData(last_data);
@@ -175,99 +168,7 @@ function App() {
     }
 
     function Header() {
-        const [deviceName, setDeviceName] = useState(childName);
-        const [isEditing, setIsEditing] = useState(false);
-        const [tempName, setTempName] = useState('');
-        
-        useEffect(() => {
-            setDeviceName(childName);
-        }, [childName]);
-        
-        const startEditing = () => {
-            setTempName(deviceName);
-            setIsEditing(true);
-        };
-
-        const delete_this = () => {
-            Swal.fire({
-                title: "장비를 제거합니까?",
-                showCancelButton: true,
-                confirmButtonText: "제거",
-                cancelButtonText: "취소"
-            }).then(async(result) => {
-                if(result.isConfirmed){
-                    secret_code("연결 해제").then(async(result) => {
-                        if(result){
-                            const response = await fetchData("req_hub/child_del", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1]})
-                            if(response.status == 200){
-                                Swal.fire({
-                                    position: "top",
-                                    icon: "success",
-                                    title: '장비가 제거되었습니다.',
-                                    timer: 1000
-                                }).then(() => {
-                                    location.replace(location.origin+"/web/list");
-                                });
-                            }
-                        }else{
-                            Swal.fire({
-                                title: "코드가 틀렸습니다.",
-                                icon: "error"
-                            });
-                        }
-                    })
-                }
-            })
-        };
-        
-        const saveName = async() => {
-            if(deviceName!=tempName){
-                const rename = await fetchData("req_hub/child_name", {...sendData, hub:pathname_parse[0], type:"hive", dvid:pathname_parse[1], name:tempName});
-                if(rename.status==200){
-                    setDeviceName(tempName);
-                }
-            }
-            setIsEditing(false);
-        };
-        
-        const cancelEdit = () => {
-            setIsEditing(false);
-        };
-        
-        if (isEditing) {
-            return React.createElement('header', null,
-                React.createElement('div', { className: 'device-name' },
-                    React.createElement('input', {
-                        type: 'text',
-                        className: 'name-input',
-                        value: tempName,
-                        onChange: (e) => setTempName(e.target.value)
-                    }),
-                    React.createElement('button', {
-                        className: 'edit-btn cancel-btn',
-                        onClick: cancelEdit
-                    }, '취소'),
-                    React.createElement('button', {
-                        className: 'edit-btn',
-                        onClick: saveName
-                    }, '저장')
-                )
-            );
-        } else {
-            return React.createElement('header', null,
-                React.createElement('h1', null, deviceName),
-                React.createElement('div', { className: 'device-name' },
-                    React.createElement('button', {
-                        className: 'edit-btn cancel-btn',
-                        onClick: delete_this
-                    }, '장비 삭제'),
-                    React.createElement('button', {
-                        className: 'edit-btn',
-                        onClick: startEditing
-                    }, '이름 변경')
-                )
-            );
-        }
+        return React.createElement('header', null,React.createElement('h1', null, pathname_parse+" : "+childName));
     }
 
     function heat_state_str(params) {
@@ -308,11 +209,11 @@ function App() {
                 if(result.isConfirmed){
                     const change_temp = parseInt(result.value);
                     if(ex_state != change_temp){
-                        const response = await fetchData("req_hub/child_set", {
+                        const response = await fetchData("request/config_set", {
                             ...sendData, 
                             hub: pathname_parse[0], 
                             type: "hive", 
-                            dvid: pathname_parse[1], 
+                            dvid: pathname_parse, 
                             config: {ex_goal: change_temp}
                         });
                         config.ex_goal = change_temp;
@@ -336,11 +237,11 @@ function App() {
                 cancelButtonText: "취소"
             }).then(async(result) => {
                 if(result.isConfirmed){
-                    const response = await fetchData("req_hub/child_set", {
+                    const response = await fetchData("request/config_set", {
                         ...sendData, 
                         hub: pathname_parse[0], 
                         type: "hive", 
-                        dvid: pathname_parse[1], 
+                        dvid: pathname_parse, 
                         config: {ex_run: bool_heat}
                     });
                     config.ex_goal = bool_heat;
