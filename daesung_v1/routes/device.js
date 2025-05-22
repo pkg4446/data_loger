@@ -36,7 +36,7 @@ async function fn_save_log(path_device,path_log,filename,file_content){
     }
 }
 
-async function config(DVC,path_device) {
+async function hive_config(DVC,path_device) {
     let response = "";
     if(await file_system.check(path_device + "/config.json")){
         const device_config = JSON.parse(await file_system.fileRead(path_device,"config.json"));
@@ -45,6 +45,8 @@ async function config(DVC,path_device) {
             if(device_config.ex_goal != device_config.goal || device_config.ex_run != device_config.run)
             response = DVC+" WEB "+device_config.ex_goal+" "+device_config.ex_run;
         }
+    }else{
+        response = DVC+" WEB 3 0";
     }
     return response;
 }
@@ -104,7 +106,7 @@ router.post('/hive', async function(req, res) {
             const filename = fn_file_name(log_date);
             const file_content = JSON.stringify({...req.body.DATA, date:log_date});
             await fn_save_log(path_device,path_log,filename,file_content);
-            response = await config(req.body.DVC,path_device);
+            response = await hive_config(req.body.DVC,path_device);
         }else if(req.body.API == "mod"){
             await modify(path_device,req.body.DATA);
 
@@ -131,7 +133,7 @@ router.post('/hub', async function(req, res) {
             const filename = fn_file_name(log_date);
             const file_content = JSON.stringify({...req.body.DATA, date:log_date});
             await fn_save_log(path_device,path_log,filename,file_content);
-            response = await config(req.body.DVC,path_device);
+            response = await hive_config(req.body.DVC,path_device);
 
         }else if(req.body.API == "mod"){
             await modify(path_device,req.body.DATA);
