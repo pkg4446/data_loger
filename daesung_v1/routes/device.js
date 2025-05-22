@@ -46,7 +46,8 @@ async function hive_config(DVC,path_device) {
             response = DVC+" WEB "+device_config.ex_goal+" "+device_config.ex_run;
         }
     }else{
-        response = DVC+" WEB 3 0";
+        response = DVC+" WEB 3 0";        
+        await file_system.fileMK(path_device,JSON.stringify({ex_goal:3,ex_run:0}),"config.json");
     }
     return response;
 }
