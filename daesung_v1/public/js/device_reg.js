@@ -26,7 +26,9 @@ async function page_init() {
         React.createElement("form",{id:"userForm", onSubmit: handleSubmit},[
             React.createElement("div",{style:data_row},[
                 React.createElement("label",{style:cell, htmlFor:"device"},"벌통"),
-                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"hub", defaultChecked:true}),
+                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"hive", defaultChecked:true}),
+                React.createElement("label",{style:cell, htmlFor:"device"},"라우터"),
+                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"hub"}),
                 React.createElement("label",{style:cell, htmlFor:"device"},"활동감지"),
                 React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"act"}),
             ]),
@@ -112,6 +114,13 @@ async function device_reg(dvid,type,name) {
         });
         return true;
     }else{
+        Swal.fire({
+            position: "top",
+            icon:   "error",
+            title:  "장비연결기록이 없습니다.",
+            showConfirmButton: false,
+            timer:  1500
+        });
         return false;
     }
 }
