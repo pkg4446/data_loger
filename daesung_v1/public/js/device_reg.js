@@ -20,8 +20,14 @@ async function page_init() {
         device_reg(formData.get("device"),formData.get("device_type"),formData.get("device_name"))
     }
 
+    const response = await(await fetchData("request/able",{
+        id:     localStorage.getItem('user'),
+        token:  localStorage.getItem('token')
+    })).json();
+    console.log(response);
+
     let elemets = [
-        React.createElement("h2",null,"장비등록"),
+        React.createElement("h2",null,"접속 IP : "+response.ip),
         React.createElement("br",null,null),
         React.createElement("form",{id:"userForm", onSubmit: handleSubmit},[
             React.createElement("div",{style:data_row},[
@@ -43,15 +49,11 @@ async function page_init() {
             React.createElement("button",{className:"submit-button"},"등록"),
         ])
     ];
-    const response = await(await fetchData("request/able",{
-        id:     localStorage.getItem('user'),
-        token:  localStorage.getItem('token')
-    })).json();
-    console.log(response);
+    
     let enable_device = [];
     for (const type_key in response) {
         const type_list = response[type_key];
-        if(type_list.length > 0){
+        if(type_list.length > 0 && type_key != "ip"){
             enable_device.push(React.createElement("p",{className:"form-section"},type_key),React.createElement(DeviceList, {initialList:type_list,type:type_key}));
         }         
     }

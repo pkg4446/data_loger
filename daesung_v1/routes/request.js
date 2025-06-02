@@ -134,6 +134,7 @@ router.post('/able', async function(req, res) {
             const requestIp = require('request-ip');
             const conn_ip   = requestIp.getClientIp(req);
             response = await device.ip_check(conn_ip);
+            response.ip = conn_ip;
         }
     }
     res.status(status_code).send(response);
