@@ -126,7 +126,7 @@ async function getdata(date_now){
             const json = response[index];
             times[date_data].push(json.date);
             for (const key in json) {
-                if(key != "date"){
+                if(key != "date" && key != "lipo"){
                     const element = json[key];
                     rawdata.push(element);
                 }
