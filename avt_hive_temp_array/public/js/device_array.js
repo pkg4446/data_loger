@@ -47,8 +47,8 @@ function getColor(temp) {
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
 }
 
-function updateHoneycomb(key, timeIndex) {
-    const lipo = bettery_data[key][timeIndex];
+function updateHoneycomb(key, timeIndex) {    
+    const lipo = bettery_data[key]?bettery_data[key][timeIndex]: undefined;
     const lipo_tag = document.getElementById('lipo');
     if(lipo != undefined){
         lipo_tag.style.display = 'block';

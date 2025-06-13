@@ -32,6 +32,13 @@ function lock_shift() {
     }
 }
 ////-------------------////
+function pump_log(macaddr) {
+    if(view_locker){
+        localStorage.setItem('macaddr', macaddr);
+        window.location.href = '/web/pump_log';
+    }
+}
+////-------------------////
 function device_detail(macaddr,devid) {
     if(view_locker){
         localStorage.setItem('macaddr', macaddr);
@@ -231,8 +238,8 @@ function getdata_pump(send_data, device){
             let level_honey = liquid_hight-parseInt(pump_data.DATA.sona2);
             if(level_honey < 0) level_honey = 0;
 
-            HTML_script += `<div class="cell humidity">급수💧:${level_water*2} L</div>`;
-            HTML_script += `<div class="cell temp-air">사양🍯:${level_honey*2} L</div></div>`;
+            HTML_script += `<div class="cell humidity" onclick=pump_log("${device[0]}")>급수💧:${level_water*2} L</div>`;
+            HTML_script += `<div class="cell temp-air" onclick=pump_log("${device[0]}")>사양🍯:${level_honey*2} L</div></div>`;
             HTML_script += ``;
 
             if(today>data_date){

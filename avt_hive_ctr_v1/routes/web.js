@@ -66,4 +66,13 @@ router.get('/select', async function(req, res) {
     let web_page = html.page("device_log",css,js);
     res.status(201).send(web_page);
 });
+
+router.get('/pump_log', async function(req, res) {
+    const css = html.css("main") + html.css("log");
+    let js  = `<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>`;
+        js += html.js("pump_log");
+        js += html.js("login_text");
+    let web_page = html.page("pump_log",css,js);
+    res.status(201).send(web_page);
+});
 module.exports = router;

@@ -153,4 +153,32 @@ router.post('/setup', async function(req, res) {
     res.status(status_code).send();
 });
 
+router.post('/log', async function(req, res) {
+    let status_code = 400;
+    let response    = "nodata";
+    const user_data = req.body;
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.date!=undefined){
+        const   path_device = path_data.device("pump")+"/"+user_data.dvid;
+        if(token_check(user_data.token,user_data.id)){
+            if(file_system.check(path_device+"/owner.txt")&&(file_system.fileRead(path_device,"owner.txt")==user_data.id)){
+                status_code = 200;
+                response    = "ok";
+                for (let index = 1; index < 3; index++) {if(user_data.date[index]<10){user_data.date[index] = "0"+user_data.date[index];}}
+                if(file_system.check(path_device+"/"+user_data.date[0]+"/"+user_data.date[1]+"/"+user_data.date[2]+".json")){
+                    response    = "log\r\n" + file_system.fileRead(path_device+"/"+user_data.date[0]+"/"+user_data.date[1],user_data.date[2]+".json");
+                }else{
+                    response = "null";
+                }
+            }else{
+                status_code = 403;
+                response    = "device";
+            }
+        }else{
+            status_code = 401;
+            response    = "user";
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 module.exports = router;

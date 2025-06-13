@@ -1,0 +1,17 @@
+<main>
+    <section class="dashboard">
+        <div class="date-controls">
+            <button class="search-btn" onclick="day_change(false,)">하루 전</button>
+            <input  class="date-input" type="date" id="data_day" onchange="getdata(new Date(this.value))">
+            <button class="search-btn" onclick="day_change(true)">하루 뒤</button>
+        </div>
+        <div class="graph-container" id="graph_area">
+            <div class="date-controls"><h3>🍯사양💧급수</h3></div>
+            <div class="graph" id="graph_water"></div>
+            <div class="date-controls"><h3>🌡️외부 온도</h3></div>
+            <div class="graph" id="graph_temp"></div>
+            <div class="date-controls"><h3>💧외부 습도</h3></div>
+            <div class="graph" id="graph_humi"></div>
+        </div>
+    </section>
+</main>
