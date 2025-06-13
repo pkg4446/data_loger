@@ -89,6 +89,7 @@ router.post('/able', async function(req, res) {
             const requestIp = require('request-ip');
             const conn_ip   = requestIp.getClientIp(req);
             response = await device.ip_check(conn_ip);
+            response.ip = conn_ip;
         }
     }
     res.status(status_code).send(response);
@@ -97,6 +98,7 @@ router.post('/able', async function(req, res) {
 router.post('/connect', async function(req, res) {
     let status_code = 400;
     const user_data = req.body;
+    console.log(user_data)
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined && user_data.name!=undefined && user_data.name.length>0){
         user_data.name = user_data.name.replaceAll(' ',"_");
         if(await login_check.user(user_data.token,user_data.id)){

@@ -1,6 +1,5 @@
 function EquipmentManager() {
   const [arrayDevices, setArrayDevices] = React.useState([]);
-  const [hiveDevices, setHiveDevices] = React.useState([]);
 
   React.useEffect(() => {
     loadDevices();
@@ -16,20 +15,13 @@ function EquipmentManager() {
     const device_list = (await response.text()).split('\r\n');
         
     const tempArrayDevices = [];
-    const tempHiveDevices = [];
 
     for (const device of device_list) {
       const status = device.split(',');
-      if (status[1] === "hive") {
-        console.log(status);
-        tempHiveDevices.push(status);
-      } else if (status[1] === "array") {
-        tempArrayDevices.push(status);
-      }
+      tempArrayDevices.push(status);
     }
 
     setArrayDevices(tempArrayDevices);
-    setHiveDevices(tempHiveDevices);
   };
 
   const handleDelete = async (deviceId) => {

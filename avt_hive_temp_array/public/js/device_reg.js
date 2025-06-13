@@ -46,7 +46,7 @@ async function page_init() {
     let enable_device = [];
     for (const type_key in response) {
         const type_list = response[type_key];
-        if(type_list.length > 0){
+        if(type_list.length > 0 && type_key != "ip"){
             enable_device.push(React.createElement("p",{className:"form-section"},type_key),React.createElement(DeviceList, {initialList:type_list,type:type_key}));
         }         
     }
@@ -81,7 +81,7 @@ function DeviceList({initialList,type}) {
                 input:  'text',
             }).then((result)=>{
                 if(result.isConfirmed && result.value.length > 0){
-                    device_reg(item,type,result.value).then((response)=>{
+                    device_reg(type,item,result.value).then((response)=>{
                         if(response) handleRemoveItem(index);
                     });
                 }
