@@ -1,3 +1,13 @@
+<section>
+    <div id="root">test</div>
+    <div class="controls">
+        <button onclick="test(false)">하루 전</button>
+        <input type="date" id="data_day" onchange="getdata(new Date(this.value))">
+        <button onclick="day_change(true)">하루 뒤</button>
+    </div>
+    <div id="webgl-container"></div>
+</section>
+
 <script type="importmap">
     {
         "imports": {
@@ -7,8 +17,3 @@
 </script>
 <script type="module" src="../public/js/hive_3D.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-<section>
-    <div id="root">test</div>
-    <div id="webgl-container"></div>
-</section>

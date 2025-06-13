@@ -83,8 +83,12 @@ function EquipmentManager() {
   };
 
   return React.createElement("div", {style: { width: "100%", margin: "auto" }}, [...renderArrayDevices(),
-    arrayDevices.length > 0 && React.createElement("div", { 
+    React.createElement("div", { 
       className: "device-button", 
+      onClick: () => location.href = "/web/3D"
+    }, "3D Viewer"),
+    arrayDevices.length > 0 && React.createElement("div", { 
+      className: "device-button",
       // onClick: () => navigateToArrange("array")
     }, "array 순서정렬")
   ]);

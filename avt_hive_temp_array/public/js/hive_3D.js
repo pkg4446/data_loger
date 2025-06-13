@@ -116,18 +116,6 @@ class App {
                         }
                     }
                 }
-            } else {
-                // 아무것도 클릭되지 않았을 때 이전에 선택된 항목이 있다면 원래 위치로 돌려놓는 로직이 필요할 수 있습니다.
-                // 현재 코드에서는 _selectedMesh가 null로만 설정됩니다.
-                if (this._raycaster._selectedMesh !== null) {
-                    let honeycomb_hight = 0;
-                    for (let index = 0; index < this.hive[this._raycaster._selectedMesh].length; index++) {
-                        if(index%divide_number == 0) honeycomb_hight += 1;
-                        gsap.to(this.hive[this._raycaster._selectedMesh][index].position, { y: 0.3 - honeycomb_hight/divide_number, duration: 1 });
-                        gsap.to(this.hive[this._raycaster._selectedMesh][index].rotation, { y: -Math.PI*2, duration: 1 });
-                    }
-                    this._raycaster._selectedMesh = null;
-                }
             }
         });
     }
@@ -213,14 +201,7 @@ class App {
 
     render(time) {
         this._renderer.render(this._scene, this._camera);
-        this.update(time);
         requestAnimationFrame(this.render.bind(this));
-    }
-
-    update(time){
-        time *= 0.001; // second unitc
-        //this._cube.rotation.x = time;
-        //this._cube.rotation.y = time;
     }
 }
 
@@ -269,8 +250,26 @@ function initEquipment() {
   root.render(React.createElement(EquipmentManager));
 }
 
+//----------------
+function day_change(flage){
+    let data_day = new Date(document.getElementById('data_day').value);
+    if(flage){
+        data_day.setDate(data_day.getDate()+1);
+    }else{
+        data_day.setDate(data_day.getDate()-1);
+    }
+    document.getElementById('data_day').value = data_day.toISOString().substring(0, 10);
+    const date_data = ""+data_day.getFullYear()+data_day.getMonth()+data_day.getDate();
+    if(new Date().toISOString().substring(0, 10) === document.getElementById('data_day').value || temperatures[date_data] === undefined){
+        console.log("post!");
+        // getdata(data_day);
+    }else{
+        drawing(date_data);
+    }
+}
 
 window.onload = function() {
+    initEquipment();    
+    document.getElementById('data_day').value = new Date().toISOString().substring(0, 10);
     new App();
-    initEquipment();
 }

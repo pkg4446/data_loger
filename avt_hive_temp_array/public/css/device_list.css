@@ -38,6 +38,7 @@
     font-family: 'Courier New', monospace;
 }
 .device-button {
+    margin-top: 10px;
     cursor: pointer;
     background-color: #ffad32;
     color: #8B4513;
