@@ -1,5 +1,6 @@
 const temperatures  = {};
 const times         = {};
+const bettery_data  = {};
 
 document.getElementById('data_day').value = new Date().toISOString().substring(0, 10);
 getdata(new Date());
@@ -47,6 +48,17 @@ function getColor(temp) {
 }
 
 function updateHoneycomb(key, timeIndex) {
+    const lipo = bettery_data[key][timeIndex];
+    const lipo_tag = document.getElementById('lipo');
+    if(lipo != undefined){
+        lipo_tag.style.display = 'block';
+        const lipo_percent = lipo > 4.1 ?"100":((lipo-3.3)/0.8*100).toFixed(2);
+        const lipo_emoji = lipo > 3.5 ? "🔋" : "🪫";
+        document.getElementById('lipo_percent').innerText = lipo_emoji+lipo_percent+"%";        
+    }else{
+        lipo_tag.style.display = 'none';
+    }
+
     if(timeIndex<temperatures[key].length){
         const honeycomb = document.getElementById('honeycomb');
         honeycomb.innerHTML = '';
@@ -112,7 +124,7 @@ async function getdata(date_now){
     };
 
     const response = await(await fetchData("request/log", sendData)).json();
-
+    
     const date_data = ""+date_now.getFullYear()+date_now.getMonth()+date_now.getDate();
     if(temperatures[date_data] === undefined) temperatures[date_data] = [];
     if(times[date_data] === undefined) times[date_data] = [];
@@ -126,7 +138,10 @@ async function getdata(date_now){
             const json = response[index];
             times[date_data].push(json.date);
             for (const key in json) {
-                if(key != "date" && key != "lipo"){
+                if(key == "lipo"){
+                    if(bettery_data[date_data] == undefined) bettery_data[date_data] = {};
+                    bettery_data[date_data][temperatures[date_data].length] = json[key];
+                }else if(key != "date"){
                     const element = json[key];
                     rawdata.push(element);
                 }
