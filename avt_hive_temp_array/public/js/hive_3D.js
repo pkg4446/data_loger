@@ -98,7 +98,7 @@ class App {
                             }
                         } else {
                             this._raycaster._selectedMesh = null;
-                        }     
+                        }     
                         if(oldSelectedIndex != null) {
                             let honeycomb_hight = 0;
                             for (let index = 0; index < this.hive[oldSelectedIndex].length; index++) {
@@ -147,7 +147,7 @@ class App {
     }
 
     // 기존의 모든 벌집을 제거하고 새롭게 생성합니다.
-    _setModel_hive(num) {
+    _setModel_hive(num, hiveData) { // hiveData 인자 추가
         // 기존 벌집 제거
         this.hive.forEach(honeycombArray => {
             honeycombArray.forEach(honeycomb => {
@@ -164,21 +164,25 @@ class App {
         for (let index = 0; index < num; index++) {
             let honeycomb = [];
             let honeycomb_hight = 0;
-            for (let honeycomb_index = 0; honeycomb_index < data_number; honeycomb_index++) {                
+            const currentHiveTemps = hiveData[index] || []; // 해당 벌집의 온도 데이터
+            for (let honeycomb_index = 0; honeycomb_index < data_number; honeycomb_index++) {
                 if(honeycomb_index%divide_number == 0) honeycomb_hight += 1;
+                
+                // 온도 데이터를 기반으로 색상 설정
+                const temp = currentHiveTemps[honeycomb_index % currentHiveTemps.length]/100; // 데이터가 부족할 경우를 대비
+                const color = getColor(temp !== undefined ? temp : 25); // 온도 데이터가 없으면 기본값 25 사용
+                
                 let material = new THREE.MeshBasicMaterial( {
-                    color: 'rgb(255,46,99)',
+                    color: color, // getColor 함수로 설정
                     side: THREE.BackSide
                 });
-                material.color.g = Math.random()*0.5;
-                material.color.b = Math.random()*0.8;
+                
                 honeycomb.push(new THREE.Mesh( geometry, material));
                 honeycomb[honeycomb_index].scale.multiplyScalar(0.18);
                 honeycomb[honeycomb_index].rotation.set(Math.PI/2,0,0);
                 honeycomb[honeycomb_index].position.set(honeycomb_index%divide_number/14 - 0.525 + honeycomb_hight%2*0.035, 0.3-honeycomb_hight/divide_number, 0.45 - index/8);
                 honeycomb[honeycomb_index].name = "honeycomb_"+index;
             }
-            console.log(honeycomb);
             this.hive.push(honeycomb);
             this.hive[index].forEach(element => {
                 this._scene.add(element);
@@ -208,7 +212,7 @@ class App {
 
 function EquipmentManager() {
     const [arrayDevices, setArrayDevices] = React.useState([]);
-    const [hiveCount, setHiveCount] = React.useState(0); // 벌집 개수 상태 추가
+    const [hiveData, setHiveData] = React.useState([]); // 벌집 데이터 상태 추가
     const appRef = React.useRef(null); // App 클래스 인스턴스를 참조하기 위한 ref
 
     React.useEffect(() => {
@@ -216,16 +220,16 @@ function EquipmentManager() {
         // App 클래스의 인스턴스를 생성하고 ref에 할당
         if (!appRef.current) {
             appRef.current = new App();
-            appRef.current._setModel_hive(hiveCount); // 초기 벌집 생성
+            appRef.current._setModel_hive(hiveData.length, hiveData); // 초기 벌집 생성 시 hiveData 전달
         }
     }, []);
 
-    // hiveCount가 변경될 때마다 _setModel_hive 호출
+    // hiveData가 변경될 때마다 _setModel_hive 호출
     React.useEffect(() => {
         if (appRef.current) {
-            appRef.current._setModel_hive(hiveCount);
+            appRef.current._setModel_hive(hiveData.length, hiveData); // 변경된 hiveData 전달
         }
-    }, [hiveCount]);
+    }, [hiveData]); // 의존성 배열에 hiveData 추가
 
     const loadDevices = async () => {
         const sendData = {
@@ -254,11 +258,11 @@ function EquipmentManager() {
                     onClick: async ()=>{
                         const date_now = new Date();
                         const sendData = {
-                            id:     localStorage.getItem('user'),
-                            token:  localStorage.getItem('token'),
-                            type:   "array",
-                            dvid:   status[0],
-                            date:   [date_now.getFullYear(), date_now.getMonth(), date_now.getDate()]
+                            id:      localStorage.getItem('user'),
+                            token:   localStorage.getItem('token'),
+                            type:    "array",
+                            dvid:    status[0],
+                            date:    [date_now.getFullYear(), date_now.getMonth(), date_now.getDate()]
                         };
                         const response = await(await fetchData("request/log", sendData)).json();
 
@@ -294,22 +298,18 @@ function EquipmentManager() {
                         }
                         
                         let data_array = [];
-                        for (let index = 0; index < temperatures.length; index++) {
-                            const element = temperatures[index];
+                        for (let i = 0; i < temperatures.length; i++) { // 'index' 대신 'i' 사용
+                            const element = temperatures[i];
                             let datas = [];
                             for (const temps of element) {
                                 for (const temp of temps) {
                                     datas.push(temp);
-                                }                                
+                                }        
                             }
                             data_array.push(datas);
-                        }
-                        
-                        console.log(data_array);
-                        console.log(times);
-
-
-                        setHiveCount(prevCount => prevCount + 1); // 벌집 개수 증가
+                        }                        
+                        // 받아온 data_array를 hiveData에 추가
+                        setHiveData(prevHiveData => [...prevHiveData, data_array[0]]); // 첫 번째 데이터 배열만 추가 (필요에 따라 수정)
                     }
                 }, "추가"),
             ])
