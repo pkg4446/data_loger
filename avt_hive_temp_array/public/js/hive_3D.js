@@ -412,6 +412,9 @@ function EquipmentManager() {
     const unifiedTimes = getUnifiedTimes();
 
     return React.createElement("div", {}, [
+        React.createElement("div", {className:"equipment-container"}, [
+            React.createElement("div", {className:"equipment-grid"}, renderArrayDevices())
+        ]),
         // 날짜 선택기 추가
         React.createElement("input", {
                 type: "date",
@@ -434,9 +437,6 @@ function EquipmentManager() {
                 `${currentTimeIndex + 1}/${unifiedTimes.length} - ${new Date(unifiedTimes[currentTimeIndex]) || ''}` : 
                 '시간 정보 없음'
             )
-        ]),
-        React.createElement("div", {className:"equipment-container"}, [
-            React.createElement("div", {className:"equipment-grid"}, renderArrayDevices())
         ])
     ]);
 }
