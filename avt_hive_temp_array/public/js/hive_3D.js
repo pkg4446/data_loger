@@ -5,17 +5,15 @@ const divide_number = 15;
 
 class App {
     constructor() {
-
         this._setupThreeJs();
         this._setCamera();
         this._setLight();
         this._setBackground();
         this._setModel_box();
-        this._setModel_hive(8);
-
         this._setControls();
         this._setupEvents();
-        this._setupResize();  
+        this._setupResize(); 
+        this.hive = []; // hive 초기화
     }
 
     _setupThreeJs() {
@@ -44,8 +42,6 @@ class App {
 
     _setBackground(){
         this._scene.background = new THREE.Color(0xffffff);
-        // this._scene.fog = new THREE.Fog(0xffffff, 0, 150);
-        // this._scene.fog = new THREE.FogExp2(0xffffff, 0.02);
     }
 
     _setCamera() {
@@ -75,10 +71,8 @@ class App {
         this._raycaster._selectedMesh = null;
 
         window.addEventListener("click", (event) => {
-            // divContainer의 위치와 크기를 얻습니다.
             const rect = this._divContainer.getBoundingClientRect();
 
-            // divContainer 내부에서의 클릭 위치를 계산합니다.
             this._raycaster._clickedPosition.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             this._raycaster._clickedPosition.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             
@@ -89,7 +83,7 @@ class App {
                 const clickedObj = found[0].object;
                 if(clickedObj.geometry.type == "BoxGeometry"){
                     console.log("Box");
-                }else{
+                } else {
                     const hive_data = clickedObj.name.split('_');
                     if(hive_data[0] == "honeycomb"){
                         const hive_index = parseInt(hive_data[1]);
@@ -98,20 +92,19 @@ class App {
                         if(oldSelectedIndex !== this._raycaster._selectedMesh) {
                             let honeycomb_hight = 0;
                             for (let index = 0; index < this.hive[hive_index].length; index++) {
-                                if(index%divide_number == 0) honeycomb_hight += 1;
-                                // gsap는 import 되어있다고 가정합니다.
-                                gsap.to(this.hive[hive_index][index].position, { y: 1 - honeycomb_hight/divide_number, duration: 1 });
-                                gsap.to(this.hive[hive_index][index].rotation, { y: Math.PI*2, duration: 1 });
+                                if(index % divide_number == 0) honeycomb_hight += 1;
+                                gsap.to(this.hive[hive_index][index].position, { y: 1 - honeycomb_hight / divide_number, duration: 1 });
+                                gsap.to(this.hive[hive_index][index].rotation, { y: Math.PI * 2, duration: 1 });
                             }
                         } else {
                             this._raycaster._selectedMesh = null;
-                        }           
+                        }     
                         if(oldSelectedIndex != null) {
                             let honeycomb_hight = 0;
-                            for (let index = 0; index < this.hive[hive_index].length; index++) { // 여기서 hive_index 대신 oldSelectedIndex를 사용해야 합니다.
-                                if(index%divide_number == 0) honeycomb_hight += 1;
-                                gsap.to(this.hive[oldSelectedIndex][index].position, { y: 0.3 - honeycomb_hight/divide_number, duration: 1 });
-                                gsap.to(this.hive[oldSelectedIndex][index].rotation, { y: -Math.PI*2, duration: 1 });
+                            for (let index = 0; index < this.hive[oldSelectedIndex].length; index++) {
+                                if(index % divide_number == 0) honeycomb_hight += 1;
+                                gsap.to(this.hive[oldSelectedIndex][index].position, { y: 0.3 - honeycomb_hight / divide_number, duration: 1 });
+                                gsap.to(this.hive[oldSelectedIndex][index].rotation, { y: -Math.PI * 2, duration: 1 });
                             }
                         }
                     }
@@ -151,18 +144,27 @@ class App {
         this._scene.add(side_right);
         this._scene.add(front);
         this._scene.add(back);
-        // this._bottom = bottom;
     }
 
-    
+    // 기존의 모든 벌집을 제거하고 새롭게 생성합니다.
     _setModel_hive(num) {
+        // 기존 벌집 제거
+        this.hive.forEach(honeycombArray => {
+            honeycombArray.forEach(honeycomb => {
+                this._scene.remove(honeycomb);
+                honeycomb.geometry.dispose();
+                honeycomb.material.dispose();
+            });
+        });
+        this.hive = []; // 벌집 배열 초기화
+
         const data_number = 120;
         let geometry = new THREE.CylinderGeometry( 0.2, 0.2, 0.1, 6 )
-        let hive = [];
+        
         for (let index = 0; index < num; index++) {
-            let honeycomb       = [];
+            let honeycomb = [];
             let honeycomb_hight = 0;
-            for (let honeycomb_index = 0; honeycomb_index < data_number; honeycomb_index++) {
+            for (let honeycomb_index = 0; honeycomb_index < data_number; honeycomb_index++) {                
                 if(honeycomb_index%divide_number == 0) honeycomb_hight += 1;
                 let material = new THREE.MeshBasicMaterial( {
                     color: 'rgb(255,46,99)',
@@ -175,16 +177,15 @@ class App {
                 honeycomb[honeycomb_index].rotation.set(Math.PI/2,0,0);
                 honeycomb[honeycomb_index].position.set(honeycomb_index%divide_number/14 - 0.525 + honeycomb_hight%2*0.035, 0.3-honeycomb_hight/divide_number, 0.45 - index/8);
                 honeycomb[honeycomb_index].name = "honeycomb_"+index;
-                // this._scene.add(honeycomb[honeycomb_index]);
             }
-            hive.push(honeycomb);
-            hive[index].forEach(element => {
+            console.log(honeycomb);
+            this.hive.push(honeycomb);
+            this.hive[index].forEach(element => {
                 this._scene.add(element);
             });
         }
-        this.hive = hive;
     }
-///////////////////////////////////////////////////////////
+
     _setControls() {
         new OrbitControls(this._camera, this._divContainer)
     }
@@ -205,71 +206,151 @@ class App {
     }
 }
 
-//3js end
-
 function EquipmentManager() {
-  const [arrayDevices, setArrayDevices] = React.useState([]);
+    const [arrayDevices, setArrayDevices] = React.useState([]);
+    const [hiveCount, setHiveCount] = React.useState(0); // 벌집 개수 상태 추가
+    const appRef = React.useRef(null); // App 클래스 인스턴스를 참조하기 위한 ref
 
-  React.useEffect(() => {
-    loadDevices();
-  }, []);
+    React.useEffect(() => {
+        loadDevices();
+        // App 클래스의 인스턴스를 생성하고 ref에 할당
+        if (!appRef.current) {
+            appRef.current = new App();
+            appRef.current._setModel_hive(hiveCount); // 초기 벌집 생성
+        }
+    }, []);
 
-  const loadDevices = async () => {
-    const sendData = {
-      id: localStorage.getItem('user'),
-      token: localStorage.getItem('token')
+    // hiveCount가 변경될 때마다 _setModel_hive 호출
+    React.useEffect(() => {
+        if (appRef.current) {
+            appRef.current._setModel_hive(hiveCount);
+        }
+    }, [hiveCount]);
+
+    const loadDevices = async () => {
+        const sendData = {
+            id: localStorage.getItem('user'),
+            token: localStorage.getItem('token')
+        };
+
+        const response = await fetchData("request/list", sendData);
+        const device_list = (await response.text()).split('\r\n');        
+        const tempArrayDevices = [];
+
+        for (const device of device_list) {
+            const status = device.split(',');
+            tempArrayDevices.push(status);
+        }
+        setArrayDevices(tempArrayDevices);
     };
 
-    const response = await fetchData("request/list", sendData);
-    const device_list = (await response.text()).split('\r\n');        
-    const tempArrayDevices = [];
+    const renderArrayDevices = () => {
+        return arrayDevices.map((status, index) => (
+            React.createElement("div", { key: status[0], className: "equipment-card" }, [
+                React.createElement("div", { className: "equipment-name" }, status[2]),
+                React.createElement("div", { className: "honeycomb-id" }, status[0].replaceAll("_", ":")),
+                React.createElement("div", { 
+                    className: "add-to-honeycomb",
+                    onClick: async ()=>{
+                        const date_now = new Date();
+                        const sendData = {
+                            id:     localStorage.getItem('user'),
+                            token:  localStorage.getItem('token'),
+                            type:   "array",
+                            dvid:   status[0],
+                            date:   [date_now.getFullYear(), date_now.getMonth(), date_now.getDate()]
+                        };
+                        const response = await(await fetchData("request/log", sendData)).json();
 
-    for (const device of device_list) {
-      const status = device.split(',');
-      tempArrayDevices.push(status);
-    }
-    setArrayDevices(tempArrayDevices);
-  };
+                        let temperatures = [];
+                        let times        = [];
 
-  const renderArrayDevices = () => {
-    return arrayDevices.map((status, index) => (
-      React.createElement("div", { key: status[0], className: "equipment-card" }, [
-        React.createElement("div", { className: "equipment-name" }, status[2]),
-        React.createElement("div", { className: "honeycomb-id" }, status[0].replaceAll("_", ":")),
-        React.createElement("div", { 
-          className: "add-to-honeycomb", 
-          onClick: () => { location.href = "/web/array/" + status[0] }
-        }, "추가"),
-      ])
-    ));
-  };
-  return React.createElement("div", {className:"equipment-grid"}, renderArrayDevices());
+                        if(response.length>0){
+                            for (let index = 0; index < response.length; index++) {
+                                let rawdata = [];
+                                const json = response[index];
+                                times.push(json.date);
+                                for (const key in json) {
+                                    if(key != "date" && key != "lipo"){
+                                        const element = json[key];
+                                        rawdata.push(element);
+                                    }
+                                }
+                                let temperature = [];
+                                
+                                for (let row = 0; row < rawdata[0].length; row++) {
+                                    let temperature_array = [];
+                                    for (let column = rawdata.length-1; column >= 0; column--) {
+                                        if(temperature_array.length!=0)temperature_array.push((rawdata[row][column]+temperature_array[temperature_array.length-1])/2);
+                                        temperature_array.push(rawdata[row][column]);
+                                    }
+                                    temperature.push(temperature_array);
+                                }
+                                temperatures.push(temperature);
+                            }
+                        }else{
+                            temperatures    = [[]];
+                            times           = [date_now];
+                        }
+                        
+                        let data_array = [];
+                        for (let index = 0; index < temperatures.length; index++) {
+                            const element = temperatures[index];
+                            let datas = [];
+                            for (const temps of element) {
+                                for (const temp of temps) {
+                                    datas.push(temp);
+                                }                                
+                            }
+                            data_array.push(datas);
+                        }
+                        
+                        console.log(data_array);
+                        console.log(times);
+
+
+                        setHiveCount(prevCount => prevCount + 1); // 벌집 개수 증가
+                    }
+                }, "추가"),
+            ])
+        ));
+    };
+
+    return React.createElement("div", {className:"equipment-grid"}, renderArrayDevices());
 }
+
 function initEquipment() {
-  const root = ReactDOM.createRoot(document.getElementById("root"));
-  root.render(React.createElement(EquipmentManager));
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(React.createElement(EquipmentManager));
 }
 
-//----------------
-function day_change(flage){
-    let data_day = new Date(document.getElementById('data_day').value);
-    if(flage){
-        data_day.setDate(data_day.getDate()+1);
-    }else{
-        data_day.setDate(data_day.getDate()-1);
+
+function getColor(temp) {
+    const minTemp = 0;
+    const maxTemp = 50;
+    const normalizedTemp = (temp - minTemp) / (maxTemp - minTemp);
+    let r, g, b;
+    if (normalizedTemp < 0.25) {
+        b = 255 * (1 - normalizedTemp * 4);
+        g = 255 * normalizedTemp * 4;
+        r = 0;
+    } else if (normalizedTemp < 0.5) {
+        b = 0;
+        g = 255;
+        r = 255 * (normalizedTemp - 0.25) * 4;
+    } else if (normalizedTemp < 0.75) {
+        b = 0;
+        g = 255 * (1 - (normalizedTemp - 0.5) * 4);
+        r = 255;
+    } else {
+        b = 0;
+        g = 0;
+        r = 255;
     }
-    document.getElementById('data_day').value = data_day.toISOString().substring(0, 10);
-    const date_data = ""+data_day.getFullYear()+data_day.getMonth()+data_day.getDate();
-    if(new Date().toISOString().substring(0, 10) === document.getElementById('data_day').value || temperatures[date_data] === undefined){
-        console.log("post!");
-        // getdata(data_day);
-    }else{
-        drawing(date_data);
-    }
+    return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
 }
 
+// React와 ReactDOM을 import합니다.
 window.onload = function() {
-    initEquipment();    
-    document.getElementById('data_day').value = new Date().toISOString().substring(0, 10);
-    new App();
+    initEquipment();
 }

@@ -67,7 +67,7 @@ router.get('/connect', async function(req, res) {
 });
 
 router.get('/3D', async function(req, res) {
-    const css = html.css("common")+html.css("array")+html.css("hive_3D");
+    const css = html.css("common")+html.css("hive_3D");
     const js  = html.js("fetch")+html.js("login_text");
     const web_page = await html.page("hive_3D",css,js);
     res.status(201).send(web_page);
