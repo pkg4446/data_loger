@@ -109,34 +109,6 @@ input[type="range"] {
     font-weight: bold;
 }
 
-input[type="date"] {
-    padding: 10px 20px;
-    font-size: 18px;
-    border: 2px solid #fff01f;
-    border-radius: 5px;
-    background-color: #ffffff;
-    color: #333333;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-input[type="date"]:focus {
-    border-color: #d1c523;
-    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    padding: 5px;
-    background-color: #e9dc29;
-    border-radius: 3px;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    background-color: #dace2c;
-}
-
-
 @media (max-width: 1300px) {
     .row {
         margin-left: -35px;

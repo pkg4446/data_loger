@@ -98,7 +98,7 @@ class App {
                             }
                         } else {
                             this._raycaster._selectedMesh = null;
-                        }     
+                        }     
                         if(oldSelectedIndex != null) {
                             let honeycomb_hight = 0;
                             for (let index = 0; index < this.hive[oldSelectedIndex].length; index++) {
@@ -147,7 +147,7 @@ class App {
     }
 
     // 기존의 모든 벌집을 제거하고 새롭게 생성합니다.
-    _setModel_hive(num, hiveData) { // hiveData 인자 추가
+    _setModel_hive(num, allHiveData, currentTimeIndex = 0) { // currentTimeIndex 매개변수 추가
         // 기존 벌집 제거
         this.hive.forEach(honeycombArray => {
             honeycombArray.forEach(honeycomb => {
@@ -164,13 +164,18 @@ class App {
         for (let index = 0; index < num; index++) {
             let honeycomb = [];
             let honeycomb_hight = 0;
-            const currentHiveTemps = hiveData[index] || []; // 해당 벌집의 온도 데이터
+            
+            // 현재 시간 인덱스에 해당하는 온도 데이터 가져오기
+            const currentHiveTemps = allHiveData[index] && allHiveData[index][currentTimeIndex] 
+                ? allHiveData[index][currentTimeIndex] 
+                : new Array(data_number).fill(0); // 데이터가 없으면 0으로 채운 배열
+            
             for (let honeycomb_index = 0; honeycomb_index < data_number; honeycomb_index++) {
                 if(honeycomb_index%divide_number == 0) honeycomb_hight += 1;
                 
                 // 온도 데이터를 기반으로 색상 설정
-                const temp = currentHiveTemps[honeycomb_index % currentHiveTemps.length]/100; // 데이터가 부족할 경우를 대비
-                const color = getColor(temp !== undefined ? temp : 25); // 온도 데이터가 없으면 기본값 25 사용
+                const temp = currentHiveTemps[honeycomb_index % currentHiveTemps.length]; // 데이터가 부족할 경우를 대비
+                const color = getColor(temp !== undefined ? temp : 0); // 온도 데이터가 없으면 기본값 0 사용
                 
                 let material = new THREE.MeshBasicMaterial( {
                     color: color, // getColor 함수로 설정
@@ -187,6 +192,24 @@ class App {
             this.hive[index].forEach(element => {
                 this._scene.add(element);
             });
+        }
+    }
+
+    // 색상만 업데이트하는 메소드 추가
+    updateHiveColors(allHiveData, currentTimeIndex = 0) {
+        const data_number = 120;
+        
+        for (let index = 0; index < this.hive.length; index++) {
+            // 현재 시간 인덱스에 해당하는 온도 데이터 가져오기
+            const currentHiveTemps = allHiveData[index] && allHiveData[index][currentTimeIndex] 
+                ? allHiveData[index][currentTimeIndex] 
+                : new Array(data_number).fill(0);
+            
+            for (let honeycomb_index = 0; honeycomb_index < this.hive[index].length; honeycomb_index++) {
+                const temp = currentHiveTemps[honeycomb_index % currentHiveTemps.length];
+                const color = getColor(temp !== undefined ? temp : 0);
+                this.hive[index][honeycomb_index].material.color.set(color);
+            }
         }
     }
 
@@ -212,7 +235,11 @@ class App {
 
 function EquipmentManager() {
     const [arrayDevices, setArrayDevices] = React.useState([]);
-    const [hiveData, setHiveData] = React.useState([]); // 벌집 데이터 상태 추가
+    const [allHiveData, setAllHiveData] = React.useState([]); // 모든 벌집 데이터 상태
+    const [allTimes, setAllTimes] = React.useState([]); // 모든 시간 데이터 상태
+    const [currentTimeIndex, setCurrentTimeIndex] = React.useState(0); // 현재 시간 인덱스
+    const [addedDevices, setAddedDevices] = React.useState(new Set()); // 추가된 디바이스 추적
+    const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]); // 선택된 날짜 (YYYY-MM-DD 형식)
     const appRef = React.useRef(null); // App 클래스 인스턴스를 참조하기 위한 ref
 
     React.useEffect(() => {
@@ -220,16 +247,22 @@ function EquipmentManager() {
         // App 클래스의 인스턴스를 생성하고 ref에 할당
         if (!appRef.current) {
             appRef.current = new App();
-            appRef.current._setModel_hive(hiveData.length, hiveData); // 초기 벌집 생성 시 hiveData 전달
         }
     }, []);
 
-    // hiveData가 변경될 때마다 _setModel_hive 호출
+    // allHiveData가 변경될 때마다 _setModel_hive 호출
     React.useEffect(() => {
-        if (appRef.current) {
-            appRef.current._setModel_hive(hiveData.length, hiveData); // 변경된 hiveData 전달
+        if (appRef.current && allHiveData.length > 0) {
+            appRef.current._setModel_hive(allHiveData.length, allHiveData, currentTimeIndex);
         }
-    }, [hiveData]); // 의존성 배열에 hiveData 추가
+    }, [allHiveData]);
+
+    // currentTimeIndex가 변경될 때마다 색상만 업데이트
+    React.useEffect(() => {
+        if (appRef.current && allHiveData.length > 0) {
+            appRef.current.updateHiveColors(allHiveData, currentTimeIndex);
+        }
+    }, [currentTimeIndex]);
 
     const loadDevices = async () => {
         const sendData = {
@@ -248,21 +281,69 @@ function EquipmentManager() {
         setArrayDevices(tempArrayDevices);
     };
 
+    // 날짜 변경 핸들러
+    const handleDateChange = (event) => {
+        setSelectedDate(event.target.value);
+        // 날짜가 변경되면 추가된 디바이스 목록 초기화
+        setAddedDevices(new Set());
+        setAllHiveData([]);
+        setAllTimes([]);
+        setCurrentTimeIndex(0);
+    };
+
+    // 오늘 날짜를 YYYY-MM-DD 형식으로 반환
+    const getTodayString = () => {
+        return new Date().toISOString().split('T')[0];
+    };
+
+    // 시간 슬라이더가 변경될 때 호출되는 함수
+    const handleTimeSliderChange = (event) => {
+        const newIndex = parseInt(event.target.value);
+        setCurrentTimeIndex(newIndex);
+    };
+
+    // 최대 시간 배열 길이 계산
+    const getMaxTimeLength = () => {
+        if (allTimes.length === 0) return 0;
+        return Math.max(...allTimes.map(timeArray => timeArray.length));
+    };
+
+    // 통합된 시간 배열 생성 (가장 긴 시간 배열 기준)
+    const getUnifiedTimes = () => {
+        if (allTimes.length === 0) return [];
+        
+        // 가장 긴 시간 배열 찾기
+        let longestTimeArray = allTimes[0];
+        for (let i = 1; i < allTimes.length; i++) {
+            if (allTimes[i].length > longestTimeArray.length) {
+                longestTimeArray = allTimes[i];
+            }
+        }
+        
+        return longestTimeArray;
+    };
+
     const renderArrayDevices = () => {
         return arrayDevices.map((status, index) => (
             React.createElement("div", { key: status[0], className: "equipment-card" }, [
                 React.createElement("div", { className: "equipment-name" }, status[2]),
                 React.createElement("div", { className: "honeycomb-id" }, status[0].replaceAll("_", ":")),
                 React.createElement("div", { 
-                    className: "add-to-honeycomb",
+                    className: addedDevices.has(status[0]) ? "added-to-honeycomb" : "add-to-honeycomb",
                     onClick: async ()=>{
-                        const date_now = new Date();
+                        // 중복 방지 체크
+                        if (addedDevices.has(status[0])) {
+                            return; // 이미 추가된 디바이스면 함수 종료
+                        }
+
+                        // 선택된 날짜를 사용
+                        const selectedDateObj = new Date(selectedDate);
                         const sendData = {
                             id:      localStorage.getItem('user'),
                             token:   localStorage.getItem('token'),
                             type:    "array",
                             dvid:    status[0],
-                            date:    [date_now.getFullYear(), date_now.getMonth(), date_now.getDate()]
+                            date:    [selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate()]
                         };
                         const response = await(await fetchData("request/log", sendData)).json();
 
@@ -293,12 +374,14 @@ function EquipmentManager() {
                                 temperatures.push(temperature);
                             }
                         }else{
-                            temperatures    = [[]];
-                            times           = [date_now];
+                            // 데이터가 없는 경우 0으로 채운 배열 생성
+                            const emptyData = new Array(120).fill(0);
+                            temperatures = [emptyData];
+                            times = [selectedDate]; // 선택된 날짜 사용
                         }
                         
                         let data_array = [];
-                        for (let i = 0; i < temperatures.length; i++) { // 'index' 대신 'i' 사용
+                        for (let i = 0; i < temperatures.length; i++) {
                             const element = temperatures[i];
                             let datas = [];
                             for (const temps of element) {
@@ -307,16 +390,55 @@ function EquipmentManager() {
                                 }        
                             }
                             data_array.push(datas);
-                        }                        
-                        // 받아온 data_array를 hiveData에 추가
-                        setHiveData(prevHiveData => [...prevHiveData, data_array[0]]); // 첫 번째 데이터 배열만 추가 (필요에 따라 수정)
+                        }
+                        
+                        // 데이터가 없는 경우 처리
+                        if (data_array.length === 0) {
+                            data_array = [new Array(120).fill(0)];
+                        }
+                        
+                        // 새로운 벌집 데이터 추가
+                        setAllHiveData(prevData => [...prevData, data_array]);
+                        setAllTimes(prevTimes => [...prevTimes, times]);
+                        
+                        // 추가된 디바이스 목록에 추가
+                        setAddedDevices(prevAdded => new Set([...prevAdded, status[0]]));
                     }
-                }, "추가"),
+                }, addedDevices.has(status[0]) ? "추가됨" : "추가"),
             ])
         ));
     };
 
-    return React.createElement("div", {className:"equipment-grid"}, renderArrayDevices());
+    const unifiedTimes = getUnifiedTimes();
+
+    return React.createElement("div", {}, [
+        // 날짜 선택기 추가
+        React.createElement("input", {
+                type: "date",
+                value: selectedDate,
+                max: getTodayString(), // 미래 날짜 선택 불가
+                onChange: handleDateChange,
+                className: "date-picker"
+            }),
+        // 시간 슬라이더 추가
+        allHiveData.length > 0 && React.createElement("div", {style:{margin:"10px",width:"100%"}}, [
+            React.createElement("input", {
+                type: "range",
+                min: 0,
+                max: Math.max(0, unifiedTimes.length - 1),
+                value: currentTimeIndex,
+                onChange: handleTimeSliderChange,
+                className: "time-slider"
+            }),
+            React.createElement("span", {style:{margin:"10px"}}, unifiedTimes.length > 0 ? 
+                `${currentTimeIndex + 1}/${unifiedTimes.length} - ${new Date(unifiedTimes[currentTimeIndex]) || ''}` : 
+                '시간 정보 없음'
+            )
+        ]),
+        React.createElement("div", {className:"equipment-container"}, [
+            React.createElement("div", {className:"equipment-grid"}, renderArrayDevices())
+        ])
+    ]);
 }
 
 function initEquipment() {
@@ -324,12 +446,12 @@ function initEquipment() {
     root.render(React.createElement(EquipmentManager));
 }
 
-
 function getColor(temp) {
     const minTemp = 0;
     const maxTemp = 50;
-    const normalizedTemp = (temp - minTemp) / (maxTemp - minTemp);
+    const normalizedTemp = Math.max(0, Math.min(1, (temp/100 - minTemp) / (maxTemp - minTemp))); // 0-1 범위로 제한
     let r, g, b;
+    
     if (normalizedTemp < 0.25) {
         b = 255 * (1 - normalizedTemp * 4);
         g = 255 * normalizedTemp * 4;
