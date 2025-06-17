@@ -74,8 +74,8 @@ function updateHoneycomb(key, timeIndex) {
                 cell.className = 'cell';
                 cell.textContent = temp_correction;
                 cell.style.backgroundColor = getColor(temp_correction);
-                cell.onclick = function() {
-                    modal_graph(key,row,col);
+                cell.onclick = function() {                    
+                    modal_graph(row,col);
                 };
                 rowElement.appendChild(cell);
             }
@@ -173,13 +173,13 @@ async function getdata(date_now){
 function modal_close() {
     document.getElementById('modal').style.display = 'none';
 }
-function modal_graph(key,row,col) {
+function modal_graph(row,col) {
     document.getElementById('modal').style.display = 'block';
     document.getElementById('point_vector').innerText = `point : (${row}, ${col})`;
-    echarts_draw(key,row,col);
+    echarts_draw(row,col);
 }
 ////-------------------////
-function echarts_draw(key,row,col) {
+function echarts_draw(row,col) {
     let chartDom = document.getElementById("point_graph");
     let chart    = echarts.init(chartDom);
     
@@ -215,14 +215,17 @@ function echarts_draw(key,row,col) {
         }]
     };
 
-    const data_graph = temperatures[key];//[row][col];
-    for (let index = 0; index < data_graph.length; index++) {
-        const datas = data_graph[index];
-        const time_log = new Date(times[key][index]);
-        option.xAxis.data.push(`${time_log.getHours()}:${time_log.getMinutes()}`);
-        option.series[0].data.push(datas[row][col]/100);
+    for (const key in temperatures) {
+        const data_graph = temperatures[key];//[row][col];
+        for (let index = 0; index < data_graph.length; index++) {
+            const datas = data_graph[index];
+            if(datas.length != 0){
+                const time_log = new Date(times[key][index]);
+                option.xAxis.data.push(`${time_log.getFullYear()}/${time_log.getMonth()+1}/${time_log.getDate()} ${time_log.getHours()}:${time_log.getMinutes()}`);
+                option.series[0].data.push(datas[row][col]/100);
+            }
+        }
     }
-
     chart.setOption(option);
     window.addEventListener('resize', chart.resize);
 }
