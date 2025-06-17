@@ -63,19 +63,25 @@ function updateHoneycomb(key, timeIndex) {
         const honeycomb = document.getElementById('honeycomb');
         honeycomb.innerHTML = '';
         let rowsData = temperatures[key][timeIndex];
-        rowsData.forEach((row) => {
+        console.log(rowsData.length);
+        for (let row = 0; row < rowsData.length; row++) {
             const rowElement = document.createElement('div');
             rowElement.className = 'row';
-            row.forEach(temp => {
+            for (let col = 0; col < rowsData[row].length; col++) {
+                const temp = rowsData[row][col];
                 const temp_correction = (temp/100).toFixed(1);
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.textContent = temp_correction;
                 cell.style.backgroundColor = getColor(temp_correction);
+                cell.onclick = function() {
+                    modal_graph(key,row,col);
+                };
                 rowElement.appendChild(cell);
-            });
+            }
             honeycomb.appendChild(rowElement);
-        });
+            
+        }
         const time_log = new Date(times[key][timeIndex]);
         document.getElementById('timeDisplay').textContent = `시간: ${time_log.getFullYear()}년 ${time_log.getMonth()+1}월 ${time_log.getDate()}일 ${time_log.getHours()}시 ${time_log.getMinutes()}분`;
     }
@@ -114,7 +120,6 @@ function drawing(key){
 }
 
 async function getdata(date_now){
-
     const sendData = {
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token'),
@@ -163,4 +168,61 @@ async function getdata(date_now){
         times[date_data]           = [date_now];
     }
     drawing(date_data);
+}
+
+function modal_close() {
+    document.getElementById('modal').style.display = 'none';
+}
+function modal_graph(key,row,col) {
+    document.getElementById('modal').style.display = 'block';
+    document.getElementById('point_vector').innerText = `point : (${row}, ${col})`;
+    echarts_draw(key,row,col);
+}
+////-------------------////
+function echarts_draw(key,row,col) {
+    let chartDom = document.getElementById("point_graph");
+    let chart    = echarts.init(chartDom);
+    
+    const option = {
+        tooltip: {trigger: 'axis'},
+        toolbox: {
+            show: true,
+            feature: {
+                dataZoom:  { yAxisIndex: 'none'},
+                dataView:  { readOnly: false },
+                magicType: { type: ['line', 'bar'] }
+            }
+        },
+        color:["#73c0de","#fac858"],
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: []
+        },
+        yAxis: {
+            type: 'value',
+            min:-20,
+            max:50,
+            axisLabel: {formatter: '{value} °C'}
+        },
+        series: [{
+            name: "온도",
+            type: 'line',
+            color: "#ee6666",
+            data: [],
+            markPoint: {data: [{ type: 'max', name: 'Max' },{ type: 'min', name: 'Min' }]},
+            markLine:  {data: [{ type: 'average', name: 'Avg' }]}
+        }]
+    };
+
+    const data_graph = temperatures[key];//[row][col];
+    for (let index = 0; index < data_graph.length; index++) {
+        const datas = data_graph[index];
+        const time_log = new Date(times[key][index]);
+        option.xAxis.data.push(`${time_log.getHours()}:${time_log.getMinutes()}`);
+        option.series[0].data.push(datas[row][col]/100);
+    }
+
+    chart.setOption(option);
+    window.addEventListener('resize', chart.resize);
 }

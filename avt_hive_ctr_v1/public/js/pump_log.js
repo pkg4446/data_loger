@@ -93,7 +93,7 @@ function getdata(date_now){
     });
 }
 ////-------------------////
-function echarts_draw(draw_data,fromat,dom,data) {
+function echarts_draw(draw_data,format,dom,data) {
     const option_basic = {
         tooltip: {trigger: 'axis'},
         toolbox: {
@@ -114,7 +114,7 @@ function echarts_draw(draw_data,fromat,dom,data) {
             type: 'value',
             min:0,
             max:100,
-            axisLabel: {formatter: '{value} '+fromat}
+            axisLabel: {formatter: '{value} '+format}
         },
         series: [{
             name: "펌프",
