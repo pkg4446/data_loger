@@ -1,6 +1,6 @@
 if(localStorage.getItem('user')==null || localStorage.getItem('token')==null){
     window.location.href = '/web/login';
-}else if(localStorage.getItem('device') === null){
+}else if(localStorage.getItem('macaddr') === null){
     window.location.href = '/web/select';
 }else{
     document.getElementById('data_day').value = new Date().toISOString().substring(0, 10);
@@ -157,9 +157,10 @@ function echarts_draw(draw_data,format,dom,data) {
     }
 
     if(data == "sona"){
+        const liquid_hight = 60;
         for (let index = 0; index < draw_data.length; index++) {
-            option.series[0].data.push(draw_data[index].DATA.sona1);
-            option.series[1].data.push(draw_data[index].DATA.sona2);
+            option.series[0].data.push(liquid_hight-parseInt(draw_data[index].DATA.sona1));
+            option.series[1].data.push(liquid_hight-parseInt(draw_data[index].DATA.sona2));
         }
     }else{
        for (let index = 0; index < draw_data.length; index++) {
