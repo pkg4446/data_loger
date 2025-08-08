@@ -447,8 +447,8 @@ function initEquipment() {
 }
 
 function getColor(temp) {
-    const minTemp = 0;
-    const maxTemp = 50;
+    const minTemp = 20;
+    const maxTemp = 40;
     const normalizedTemp = Math.max(0, Math.min(1, (temp/100 - minTemp) / (maxTemp - minTemp))); // 0-1 범위로 제한
     let r, g, b;
     
