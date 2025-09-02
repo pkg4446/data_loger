@@ -1,6 +1,16 @@
 const temperatures  = {};
 const times         = {};
 const bettery_data  = {};
+const mode_change   = {
+    key         : null, 
+    timeIndex   : null,
+    absolute    : true
+}
+
+function tracing() {
+    mode_change.absolute = !mode_change.absolute;
+    updateHoneycomb(mode_change.key, mode_change.timeIndex)
+}
 
 async function getlist(){
     const sendData = {
@@ -43,9 +53,9 @@ function day_change(flage){
     }
 }
 
-function getColor(absolute,temps,temp) {
-    const minTemp = absolute?20:temps.min/100;
-    const maxTemp = absolute?40:temps.max/100;
+function getColor(temps,temp) {
+    const minTemp = mode_change.absolute?20:temps.min/100;
+    const maxTemp = mode_change.absolute?40:temps.max/100;
     const normalizedTemp = (temp - minTemp) / (maxTemp - minTemp);
     let r, g, b;
     if (normalizedTemp < 0.25) {
@@ -68,7 +78,9 @@ function getColor(absolute,temps,temp) {
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
 }
 
-function updateHoneycomb(key, timeIndex) {    
+function updateHoneycomb(key, timeIndex) {
+    mode_change.key       = key;
+    mode_change.timeIndex = timeIndex;
     const lipo = bettery_data[key]?bettery_data[key][timeIndex]: undefined;
     const lipo_tag = document.getElementById('lipo');
     if(lipo != undefined){
@@ -111,7 +123,7 @@ function updateHoneycomb(key, timeIndex) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.textContent = temp_correction;
-                cell.style.backgroundColor = getColor(false,temps,temp_correction);
+                cell.style.backgroundColor = getColor(temps,temp_correction);
                 cell.onclick = function() {                    
                     modal_graph(row,col);
                 };
