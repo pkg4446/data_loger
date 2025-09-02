@@ -17,8 +17,10 @@ function EquipmentManager() {
     const tempArrayDevices = [];
 
     for (const device of device_list) {
-      const status = device.split(',');
-      tempArrayDevices.push(status);
+      if(device.length!=0){
+        const status = device.split(',');
+        tempArrayDevices.push(status);
+      }
     }
 
     setArrayDevices(tempArrayDevices);
@@ -83,7 +85,7 @@ function EquipmentManager() {
   };
 
   return React.createElement("div", {style: { width: "100%", margin: "auto" }}, [...renderArrayDevices(),
-    React.createElement("div", { 
+    arrayDevices.length > 0 && React.createElement("div", { 
       className: "device-button", 
       onClick: () => location.href = "/web/3D"
     }, "3D Viewer"),

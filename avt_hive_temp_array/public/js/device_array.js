@@ -2,8 +2,29 @@ const temperatures  = {};
 const times         = {};
 const bettery_data  = {};
 
+async function getlist(){
+    const sendData = {
+      id: localStorage.getItem('user'),
+      token: localStorage.getItem('token')
+    };
+    const response = await fetchData("request/list", sendData);
+    const device_list = (await response.text()).split('\r\n');
+    const device_mac  = window.location.pathname.replace("/web/array/","");
+    console.log(device_mac);
+    for (let index = 0; index < device_list.length; index++) {
+        const device_now = device_list[index].split(",")[0];
+        if(device_mac == device_now){
+            const device_prev = index == 0 ? device_list[device_list.length-1].split(","):device_list[index-1].split(",");
+            const device_next = index == device_list.length-1 ? device_list[0].split(","):device_list[index+1].split(",");
+            document.getElementById('device_prev').innerHTML=`<button class="control" onclick="location.href='/web/array/${device_prev[0]}'">${device_prev[2]}</button>`;
+            document.getElementById('device_next').innerHTML=`<button class="control" onclick="location.href='/web/array/${device_next[0]}'">${device_next[2]}</button>`;
+        }        
+    }
+}
+
 document.getElementById('data_day').value = new Date().toISOString().substring(0, 10);
 getdata(new Date());
+getlist();
 
 function day_change(flage){
     let data_day = new Date(document.getElementById('data_day').value);
@@ -22,9 +43,9 @@ function day_change(flage){
     }
 }
 
-function getColor(temp) {
-    const minTemp = 0;
-    const maxTemp = 50;
+function getColor(absolute,temps,temp) {
+    const minTemp = absolute?20:temps.min/100;
+    const maxTemp = absolute?40:temps.max/100;
     const normalizedTemp = (temp - minTemp) / (maxTemp - minTemp);
     let r, g, b;
     if (normalizedTemp < 0.25) {
@@ -63,7 +84,24 @@ function updateHoneycomb(key, timeIndex) {
         const honeycomb = document.getElementById('honeycomb');
         honeycomb.innerHTML = '';
         let rowsData = temperatures[key][timeIndex];
-        console.log(rowsData.length);
+        console.log("rowsData:",rowsData.length);
+        const temps = {
+            min: 0,
+            max: 50
+        }
+        for (let row = 0; row < rowsData.length; row++) {
+            for (let col = 0; col < rowsData[row].length; col++) {
+                const temp = rowsData[row][col];
+                if(row==0 && col==0){
+                    temps.min = temp;
+                    temps.max = temp;
+                }else{
+                    if(temp<temps.min)      temps.min=temp;
+                    else if(temp>temps.max) temps.max=temp;
+                }
+            }
+        }
+        
         for (let row = 0; row < rowsData.length; row++) {
             const rowElement = document.createElement('div');
             rowElement.className = 'row';
@@ -73,7 +111,7 @@ function updateHoneycomb(key, timeIndex) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.textContent = temp_correction;
-                cell.style.backgroundColor = getColor(temp_correction);
+                cell.style.backgroundColor = getColor(false,temps,temp_correction);
                 cell.onclick = function() {                    
                     modal_graph(row,col);
                 };

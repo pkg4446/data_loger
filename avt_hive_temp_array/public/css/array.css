@@ -17,6 +17,7 @@ section {
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-width: 360px;
 }
 
 h1 {
@@ -89,9 +90,9 @@ h1 {
 .controls {
     margin: 10px;
     display: flex;
-    align-items: center;
+    align-items: center;     
     gap: 10px;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 button {
     background-color: #000000;
@@ -101,11 +102,14 @@ button {
     cursor: pointer;
     border-radius: 5px;
 }
+button.control {margin:2px;padding:5px; width:55px;}
+
 input[type="range"] {
     width: 100%;
     max-width: 100%;
 }
 #timeDisplay {
+    width: 100%;
     font-weight: bold;
 }
 
