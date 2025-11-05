@@ -55,43 +55,24 @@ module.exports = {
         }
         return response;
     },
-    data_get_device : function(){
+
+    data_get_device : function(device,renew_device,data_device){
         let response = null;
         const path_admin  = path_data.admin();
-        const path_device = path_data.device("device");
+        const path_device = path_data.device(device);
         const device_list = file_system.Dir(path_device);
-        if(this.data_check("device")){
+        if(this.data_check(device)){
             response = {};
-            file_system.fileMK(path_admin,"0","renew_device.txt");
+            file_system.fileMK(path_admin,"0",renew_device);
             for (let index = 0; index < device_list.length; index++) {
                 const device_path = path_device+"/"+device_list[index];
                 const device_ip = file_system.fileRead(device_path,"ip.txt");
                 if(response[device_ip] == undefined) response[device_ip] = {};
                 response[device_ip][device_list[index]] = {USER:file_system.fileRead(device_path,"owner.txt"),VER:file_system.fileRead(device_path,"ver.txt"),}
             }
-            file_system.fileMK(path_admin,JSON.stringify(response),"data_device.json");
+            file_system.fileMK(path_admin,JSON.stringify(response),data_device);
         }else{
-            response = JSON.parse(file_system.fileRead(path_admin,"data_device.json"));
-        }
-        return response;
-    },
-    data_get_pump : function(){
-        let response = null;
-        const path_admin  = path_data.admin();
-        const path_pump = path_data.device("pump");
-        const pump_list = file_system.Dir(path_pump);
-        if(this.data_check("pump")){
-            response = {};
-            file_system.fileMK(path_admin,"0","renew_pump.txt");
-            for (let index = 0; index < pump_list.length; index++) {
-                const pump_path = path_pump+"/"+pump_list[index];
-                const pump_ip = file_system.fileRead(pump_path,"ip.txt");
-                if(response[pump_ip] == undefined) response[pump_ip] = {};
-                response[pump_ip][pump_list[index]] = {USER:file_system.fileRead(pump_path,"owner.txt"),VER:file_system.fileRead(pump_path,"ver.txt"),}
-            }
-            file_system.fileMK(path_admin,JSON.stringify(response),"data_pump.json");
-        }else{
-            response = JSON.parse(file_system.fileRead(path_admin,"data_pump.json"));
+            response = JSON.parse(file_system.fileRead(path_admin,data_device));
         }
         return response;
     },

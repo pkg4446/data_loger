@@ -289,6 +289,7 @@ function fetch_device_change(api,device_ip,device_type,device_id,user_id) {
             if(api != "firmware"){
                 admin_page[device_type][device_ip][device_id].USER = user_id;
                 device_list_view("hive_table","device",admin_page.device);
+                device_list_view("hive_25_table","device_25",admin_page.device_25);
                 device_list_view("pump_table","pump",admin_page.pump);
             }
         }
@@ -377,9 +378,11 @@ function data_list() {
                 const res_data = JSON.parse(data);
                 admin_page.user   = res_data.user;
                 admin_page.device = res_data.device;
+                admin_page.device_25 = res_data.device_25;
                 admin_page.pump = res_data.pump;
                 user_list_view(res_data.user);
                 device_list_view("hive_table","device",res_data.device);
+                device_list_view("hive_25_table","device_25",res_data.device_25);
                 device_list_view("pump_table","pump",res_data.pump);
             } else {
             }
@@ -391,6 +394,7 @@ function data_list() {
     }else{
         user_list_view(admin_page.user);
         device_list_view("hive_table","device",admin_page.device);
+        device_list_view("hive_25_table","device_25",admin_page.device_25);
         device_list_view("pump_table","pump",admin_page.pump);
     }
 }

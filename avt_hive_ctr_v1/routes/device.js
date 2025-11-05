@@ -55,7 +55,7 @@ router.post('/log_25', async function(req, res) {
     if(!file_system.check(path_device)) memory_admin.data_renewal(false);
     const requestIp = require('request-ip');
     req.body.IP     = requestIp.getClientIp(req);
-    const response  = await file_worker.device_log(req.body);
+    const response  = await file_worker.device_log_25(req.body);
     res.status(201).send(response);
 });
 
