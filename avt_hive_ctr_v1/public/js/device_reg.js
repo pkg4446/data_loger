@@ -112,12 +112,20 @@ function fetch_same_ip() {
     .then(data => {
         console.log(data);
         const list_hive = data.hive.split(",");
+        const list_hive_25 = data.hive_25.split(",");
         const list_pump = data.pump.split(",");
         let device_list_innerhtml = "";
         if(list_hive.length-1>0){
-            device_list_innerhtml = '<div class="divider">연결 가능한 벌통</div><div class="form-section">';
+            device_list_innerhtml = '<div class="divider">연결 가능한 벌통x5</div><div class="form-section">';
             for (let index = 0; index < list_hive.length-1; index++) {
                 device_list_innerhtml += `<p class="user-link" id="list_${list_hive[index]}" onclick=list_regist("hive","${list_hive[index]}") style="cursor:pointer;">${list_hive[index]}</p>`
+            }
+            device_list_innerhtml += "</div>";
+        }
+        if(list_hive_25.length-1>0){
+            device_list_innerhtml += '<div class="divider">연결 가능한 벌통</div><div class="form-section">';
+            for (let index = 0; index < list_hive_25.length-1; index++) {
+                device_list_innerhtml += `<p class="user-link" id="list_${list_hive_25[index]}" onclick=list_regist("hive_25","${list_hive_25[index]}") style="cursor:pointer;">${list_hive_25[index]}</p>`
             }
             device_list_innerhtml += "</div>";
         }

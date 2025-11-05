@@ -67,6 +67,15 @@ router.get('/select', async function(req, res) {
     res.status(201).send(web_page);
 });
 
+router.get('/select_25', async function(req, res) {
+    const css = html.css("main") + html.css("log");
+    let js  = `<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>`;
+        js += html.js("device_log_25");
+        js += html.js("login_text");
+    let web_page = html.page("device_log_25",css,js);
+    res.status(201).send(web_page);
+});
+
 router.get('/pump_log', async function(req, res) {
     const css = html.css("main") + html.css("log");
     let js  = `<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>`;

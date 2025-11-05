@@ -47,6 +47,14 @@ function device_detail(macaddr,devid) {
     }
 }
 ////-------------------////
+function device_25_detail(macaddr,devid) {
+    if(view_locker){
+        localStorage.setItem('macaddr', macaddr);
+        localStorage.setItem('device_25', devid);
+        window.location.href = '/web/select_25';
+    }
+}
+////-------------------////
 function device_rename(type,devid) {
     if(view_locker){
         Swal.fire({
@@ -114,7 +122,7 @@ function pump_config_set(title,macaddr,index,code) {
     }
 }
 ////-------------------////
-function goal_temp_change(gorl_devid,devid,index_num) {
+function goal_temp_change(api,gorl_devid,devid,index_num) {
     if(view_locker){
         let init_value = 0;
         if(index_num == 5 ) init_value = parseInt(document.getElementById(gorl_devid).innerText);
@@ -135,37 +143,43 @@ function goal_temp_change(gorl_devid,devid,index_num) {
             inputValue: init_value
         }).then((result) => {
             if (result.isConfirmed){
-                const value_number = 5;
-                let temperature = [];
                 const set_value = parseInt(result.value);
-                if(index_num == value_number){
-                    for (let index = 0; index < value_number; index++) {
-                        temperature.push(parseInt(set_value));
-                        document.getElementById(gorl_devid+index).innerText = set_value;
-                    }
-                }else{
-                    for (let index = 0; index < value_number; index++) {
-                        if(index_num == index){
+                if(api=="hive"){
+                    const value_number = 5;
+                    let temperature = [];
+                    
+                    if(index_num == value_number){
+                        for (let index = 0; index < value_number; index++) {
                             temperature.push(parseInt(set_value));
                             document.getElementById(gorl_devid+index).innerText = set_value;
-                        }else temperature.push(parseInt(document.getElementById(gorl_devid+index).innerText))
+                        }
+                    }else{
+                        for (let index = 0; index < value_number; index++) {
+                            if(index_num == index){
+                                temperature.push(parseInt(set_value));
+                                document.getElementById(gorl_devid+index).innerText = set_value;
+                            }else temperature.push(parseInt(document.getElementById(gorl_devid+index).innerText))
+                        }
                     }
-                }
-                let temperature_avg = 0;
-                for (let index = 0; index < value_number; index++) {
-                    temperature_avg += temperature[index];
-                    temperature[index] += calibration;
-                }
-                temperature_avg = temperature_avg/value_number;
+                    let temperature_avg = 0;
+                    for (let index = 0; index < value_number; index++) {
+                        temperature_avg += temperature[index];
+                        temperature[index] += calibration;
+                    }
+                    temperature_avg = temperature_avg/value_number;
 
-                fetch_equipment_heater(devid,true,temperature);
-                document.getElementById(gorl_devid).innerText = temperature_avg;
+                    fetch_equipment_heater(api,devid,true,temperature);
+                    document.getElementById(gorl_devid).innerText = temperature_avg;
+                }else{
+                    fetch_equipment_heater(api,devid,true,set_value);
+                    document.getElementById(gorl_devid).innerText = set_value;
+                }
             }
         });        
     }
 }
 ////-------------------////
-function temp_assist_change(temp_devid,devid) {
+function temp_assist_change(api,temp_devid,devid) {
     if(view_locker){
         const heat_text = "가온 기능: ";
         Swal.fire({
@@ -179,7 +193,7 @@ function temp_assist_change(temp_devid,devid) {
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById(temp_devid).innerHTML = heat_text+"ON";
-                fetch_equipment_heater(devid,false,1);
+                fetch_equipment_heater(api,devid,false,1);
                 Swal.fire({
                     title: "ON",
                     text: "가온 기능을 사용합니다.",
@@ -187,7 +201,7 @@ function temp_assist_change(temp_devid,devid) {
                 });
                 } else if(result.dismiss === "cancel"){
                 document.getElementById(temp_devid).innerHTML = heat_text+"OFF";
-                fetch_equipment_heater(devid,false,0);
+                fetch_equipment_heater(api,devid,false,0);
                 Swal.fire({
                     title: "OFF",
                     text: "가온 기능을 정지합니다.",
@@ -215,7 +229,6 @@ function getdata_pump(send_data, device){
         return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
     })
     .then(data => {
-        console.log("data",data);
         const response = data.split("\r\n");
         const pump_data = JSON.parse(response[0]);
         const pump_config = JSON.parse(response[1]);
@@ -305,15 +318,15 @@ function getdata_hive(send_data, device){
             const device_log    = JSON.parse(response[0]);
             const device_config = JSON.parse(response[1]);
 
-            // console.log(device_log);
-            // console.log(device_config);
+            console.log(device_log);
+            console.log(device_config);
 
             const bar_number = 4;
             const today = new Date();
             today.setHours(today.getHours()-1);
             const data_date = new Date(device_log.date);
 
-            HTML_script+= `<div class="cell" id="${heat_devid}" onclick=temp_assist_change("${heat_devid}","${device[0]}") `;
+            HTML_script+= `<div class="cell" id="${heat_devid}" onclick=temp_assist_change("hive","${heat_devid}","${device[0]}") `;
             if(device_config.dv != null && device_config.dv[device_config.dv.length-1] === device_config.ab) HTML_script+= 'style="background-color:Chartreuse'
             else HTML_script+= 'style="background-color:Yellow'
             HTML_script+= ';cursor:pointer;"'
@@ -339,7 +352,7 @@ function getdata_hive(send_data, device){
                     average_value_check += parseInt(device_config.dv[index]);
                 }
             }
-            HTML_script+= `<div class="cell" onclick=goal_temp_change("${gorl_devid}","${device[0]}",5,null) `;
+            HTML_script+= `<div class="cell" onclick=goal_temp_change("hive","${gorl_devid}","${device[0]}",5,null) `;
             if(average_value === average_value_check){
                 HTML_script+= 'style="background-color:Chartreuse'
             }else{
@@ -385,11 +398,133 @@ function getdata_hive(send_data, device){
                                         }
                     HTML_script+=   "</div></div>";
                 }
-                HTML_script+= `<div class="cell header"    onclick=goal_temp_change("${gorl_devid}","${device[0]}",${index},${device_config.dv}) style="cursor:pointer;"><span id="${gorl_devid+index}">${device_config.th[index]-calibration}</span></div></div>`;
+                HTML_script+= `<div class="cell header"    onclick=goal_temp_change("hive","${gorl_devid}","${device[0]}",${index},${device_config.dv}) style="cursor:pointer;"><span id="${gorl_devid+index}">${device_config.th[index]-calibration}</span></div></div>`;
             }
         }else{
-            HTML_script+= `    <div class="cell" id="${heat_devid}" onclick=temp_assist_change("${heat_devid}","${device[0]}")>가온 기능: OFF</div>
-                                <div class="cell" onclick=goal_temp_change("${gorl_devid}","${device[0]}",5,null)>목표:<span id="${gorl_devid}">0</span>°C</div>
+            HTML_script+= `    <div class="cell" id="${heat_devid}" onclick=temp_assist_change("hive","${heat_devid}","${device[0]}")>가온 기능: OFF</div>
+                                <div class="cell" onclick=goal_temp_change("hive","${gorl_devid}","${device[0]}",5,null)>목표:<span id="${gorl_devid}">0</span>°C</div>
+                            </div>
+                            <div class="menu-row">
+                                <div class="cell warning" onclick=fetch_equipment_disconnect("hive",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                <div class="cell warning">데이터가 없음</div>
+                            </div>`;
+        }
+        HTML_script+= "</div>"
+        document.getElementById("unit_"+device[0]).innerHTML = HTML_script;
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
+function getdata_hive_25(send_data, device){
+    fetch(window.location.protocol+"//"+window.location.host+"/hive_25/config", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({...send_data, dvid:device[0]})
+    })
+    .then(response => {
+        if (response.status==400 || response.status==401) {
+            alert_swal("error",'로그인 정보가 없습니다.');
+        }else if (response.status==403) {
+            // alert_swal("error",'등록되지 않은 장비입니다.');
+        }
+        return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
+    })
+    .then(data => {
+        const response = data.split("\r\n");
+        const gorl_devid = "goal_"+device[0];
+        const heat_devid = "heat_"+device[0];
+
+        let HTML_script  = `<div class="unit-info">
+                                <div class="cell" id="${device[0]}" onclick=device_rename("hive","${device[0]}") style="cursor:pointer;">${device[1]}</div>
+                                <div class="cell">${device[0]}</div>`;
+        if(response[0]!="null"){
+            const device_log    = JSON.parse(response[0]);
+            const device_config = JSON.parse(response[1]);
+
+            console.log(device_log);
+            console.log(device_config);
+
+            const bar_number = 4;
+            const today = new Date();
+            today.setHours(today.getHours()-1);
+            const data_date = new Date(device_log.date);
+
+            HTML_script+= `<div class="cell" id="${heat_devid}" onclick=temp_assist_change("hive_25","${heat_devid}","${device[0]}") `;
+            if(device_config.dv != null && device_config.dv[device_config.dv.length-1] === device_config.ab) HTML_script+= 'style="background-color:Chartreuse'
+            else HTML_script+= 'style="background-color:Yellow'
+            HTML_script+= ';cursor:pointer;"'
+            
+            if(device_config.ab === '1'){
+                HTML_script+= ">가온 기능: ON</div>";
+            }else{
+                HTML_script+= ">가온 기능: OFF</div>";
+            }
+
+            let average_value   = 0;
+            if( device_config.th != null){
+                average_value += parseInt(device_config.th);
+            }else{
+                device_config.th = 0;
+            }
+
+            let average_value_check = 0;
+            if( device_config.dv != null){
+                for (let index = 0; index < device_config.dv.length-1; index++) {
+                    average_value_check += parseInt(device_config.dv);
+                }
+            }
+            HTML_script+= `<div class="cell" onclick=goal_temp_change("hive_25","${gorl_devid}","${device[0]}",5,null) `;
+            if(average_value === average_value_check){
+                HTML_script+= 'style="background-color:Chartreuse'
+            }else{
+                HTML_script+= 'style="background-color:Yellow';
+            }
+
+            HTML_script+= `;cursor:pointer;">가온:<span id="${gorl_devid}">${Math.round(average_value)}</span>°C</div></div>`;
+
+            if(today>data_date){
+                HTML_script+= `<div class="menu-row">
+                                    <div class="cell warning" onclick=fetch_equipment_disconnect("hive",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                    <div class="cell warning">마지막 기록 : ${data_date.getFullYear()}년 ${data_date.getMonth()+1}월 ${data_date.getDate()}일 ${data_date.getHours()}시 ${data_date.getMinutes()}분</div>
+                                </div>`;
+            }
+
+            HTML_script+=   `<div class="data-row">
+                            <div class="cell header">외벽 °C</div>
+                            <div class="cell header">공간 °C</div>
+                            <div class="cell header">봉구 °C</div>
+                            <div class="cell header">습도 %</div>
+                            <div class="cell header">가온 출력</div>
+                            </div><div><div class="data-row">
+                            <div class="cell"           onclick=device_25_detail("${device[0]}","${device[1]}") style="cursor:pointer;">${(parseFloat(device_log["TP"][0])).toFixed(1)}</div>
+                            <div class="cell temp-air"  onclick=device_25_detail("${device[0]}","${device[1]}") style="cursor:pointer;">${(parseFloat(device_log["TP"][1])).toFixed(1)}</div>
+                            <div class="cell temp-warm" onclick=device_25_detail("${device[0]}","${device[1]}") style="cursor:pointer;">${parseFloat(device_log["TP"][2]).toFixed(1)}</div>
+                            <div class="cell humidity"  onclick=device_25_detail("${device[0]}","${device[1]}") style="cursor:pointer;">${parseInt(device_log["HM"][2])}</div>`;
+            HTML_script+=   `<div class="cell"><div class="progress-bars">`;
+                const bar_percent = Math.round(device_log.WK/device_log.GAP*100);
+                const bar_ratio   = (100/bar_number).toFixed(1);
+                const bar_fill    = (bar_percent/bar_ratio).toFixed(1);
+                
+                for (let index_bar = 0; index_bar < bar_number; index_bar++) {
+                    if(index_bar>=bar_number-bar_fill){
+                        HTML_script+= `<div class="bar"><div class="bar-fill" style="width:100%"></div></div>`;
+                    }else{
+                        if(bar_number-bar_fill-index_bar-1 < 0){
+                            HTML_script+= `<div class="bar"><div class="bar-fill" style="width:${Math.round((bar_fill-Math.floor(bar_fill))*100)}%"></div></div>`;
+                        }else{HTML_script+= `<div class="bar"><div class="bar-fill"></div></div>`;}
+                    }
+                }
+            HTML_script+=   "</div></div></div>";
+
+
+
+        }else{
+            HTML_script+= `    <div class="cell" id="${heat_devid}" onclick=temp_assist_change("hive_25","${heat_devid}","${device[0]}")>가온 기능: OFF</div>
+                                <div class="cell" onclick=goal_temp_change("hive_25","${gorl_devid}","${device[0]}",5,null)>목표:<span id="${gorl_devid}">0</span>°C</div>
                             </div>
                             <div class="menu-row">
                                 <div class="cell warning" onclick=fetch_equipment_disconnect("hive",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
@@ -488,6 +623,14 @@ async function fetch_equipment(init) {
         body: JSON.stringify(post_data)
     });
 
+    const hive_25 = await fetch(window.location.protocol+"//"+window.location.host+"/hive_25/list", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(post_data)
+    });
+
     if (pump.status==400 || pump.status==401) {
         alert_swal("error",'로그인 정보가 없습니다.');
         window.location.href = '/web/login';
@@ -523,11 +666,30 @@ async function fetch_equipment(init) {
                 device_list.push(device);
                 HTML_script+= `<div class="unit-section" id="unit_${device[0]}"></div>`;
             }
-            HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},${null},${null})>벌통 정렬</div>`;
+            HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},${null},${null})>벌통x5 정렬</div><br>`;
             document.getElementById('farm_section_device').innerHTML = HTML_script;
+            HTML_script = "";
         }
         for (let index = 0; index < device_list.length; index++) {
             getdata_hive(post_data,device_list[index]);
+        }
+    }
+
+    if (hive_25.status==200) {
+        const devices = (await hive_25.text()).split("\r\n");
+        let device_list = [];
+        if(init){
+            for (let index = 0; index < devices.length; index++) {
+                const device = devices[index].split(",");
+                if(device[0] == "") continue;
+                device_list.push(device);
+                HTML_script+= `<div class="unit-section" id="unit_${device[0]}"></div>`;
+            }
+            HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},${null},${null})>벌통 정렬</div>`;
+            document.getElementById('farm_section_device_25').innerHTML = HTML_script;
+        }
+        for (let index = 0; index < device_list.length; index++) {
+            getdata_hive_25(post_data,device_list[index]);
         }
     }
 }
@@ -636,7 +798,7 @@ function fetch_device_rename(type,device_id,device_name) {
     }
 }
 ////-------------------////
-function fetch_equipment_heater(device_id,func,value) {
+function fetch_equipment_heater(api,device_id,func,value) {
     // 여기에 실제 서버 URL을 입력하세요
     const post_data = {
         id:     localStorage.getItem('user'),
@@ -645,7 +807,7 @@ function fetch_equipment_heater(device_id,func,value) {
         func:   func,
         value:  value
     }
-    fetch(window.location.protocol+"//"+window.location.host+"/hive/heater", {
+    fetch(window.location.protocol+"//"+window.location.host+"/"+api+"/heater", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

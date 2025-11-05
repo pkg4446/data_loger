@@ -8,6 +8,7 @@ const device    = require('./device');
 const firmware  = require('./firmware');
 const user      = require('./user');
 const hive      = require('./hive');
+const hive_25   = require('./hive_25');
 const pump      = require('./pump');
 
 router.route("/")
@@ -26,6 +27,7 @@ router.use('/device',device);
 router.use('/firmware',firmware);
 router.use('/user',user);
 router.use('/hive',hive);
+router.use('/hive_25',hive_25);
 router.use('/pump',pump);
 
 module.exports  = router;

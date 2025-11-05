@@ -5,7 +5,7 @@ module.exports = {
     ip_get : async function(){
         let response  = null;
         const path_ip = "./api/ip";
-        const device_list = memory_admin.data_get_device();
+        const device_list = memory_admin.data_get_device("device","renew_device.txt","data_device.json");
         for (const ip in device_list) {
             local_check = ip.split(".")[0];
             if(local_check=='ver' || local_check=='::1' || local_check=="192" ){
