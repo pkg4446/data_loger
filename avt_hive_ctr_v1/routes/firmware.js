@@ -9,8 +9,7 @@ router.post('/device', async function(req, res) {
     try {
         const request = req.body;
         const path_firmware = path_data.firmware();
-        console.log(request,path_firmware + "/" + request.KIND + "/" + file_data.firmware(),file_system.check(path_firmware + "/" + request.KIND + "/" + file_data.firmware()));
-        
+
         if(request.KIND && file_system.check(path_firmware + "/" + request.KIND + "/" + file_data.firmware())){
             file_system.fileMK(path_data.device(request.KIND)+"/"+request.DVC,"0",file_data.firmware_update());
             
