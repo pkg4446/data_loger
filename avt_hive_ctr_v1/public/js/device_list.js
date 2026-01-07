@@ -107,7 +107,6 @@ function pump_config_set(title,macaddr,index,code) {
                     index:  index,
                     time:  result.value
                 }
-                console.log(post_data);
                 fetch(window.location.protocol+"//"+window.location.host+"/pump/setup", {
                     method: 'POST',
                     headers: {
@@ -232,8 +231,6 @@ function getdata_pump(send_data, device){
         const response = data.split("\r\n");
         const pump_data = JSON.parse(response[0]);
         const pump_config = JSON.parse(response[1]);
-        console.log(pump_data);
-        console.log(pump_config);
         if(pump_config.set == null){pump_config.set=[12,12,12,12,12,12];}
 
         let HTML_script =  `<div class="pump-row">
@@ -299,12 +296,14 @@ function getdata_hive(send_data, device){
         body: JSON.stringify({...send_data, dvid:device[0]})
     })
     .then(response => {
+        if (response.status==200) return response.text();// JSON 대신 텍스트로 응답을 읽습니다.
         if (response.status==400 || response.status==401) {
             alert_swal("error",'로그인 정보가 없습니다.');
         }else if (response.status==403) {
             // alert_swal("error",'등록되지 않은 장비입니다.');
         }
-        return response.text(); // JSON 대신 텍스트로 응답을 읽습니다.
+        console.log(device);
+        return "null";
     })
     .then(data => {
         const response = data.split("\r\n");
@@ -317,9 +316,6 @@ function getdata_hive(send_data, device){
         if(response[0]!="null"){
             const device_log    = JSON.parse(response[0]);
             const device_config = JSON.parse(response[1]);
-
-            console.log(device_log);
-            console.log(device_config);
 
             const bar_number = 4;
             const today = new Date();
@@ -444,10 +440,7 @@ function getdata_hive_25(send_data, device){
         if(response[0]!="null"){
             const device_log    = JSON.parse(response[0]);
             const device_config = JSON.parse(response[1]);
-
-            console.log(device_log);
-            console.log(device_config);
-
+            
             const bar_number = 4;
             const today = new Date();
             today.setHours(today.getHours()-1);
@@ -488,7 +481,7 @@ function getdata_hive_25(send_data, device){
 
             if(today>data_date){
                 HTML_script+= `<div class="menu-row">
-                                    <div class="cell warning" onclick=fetch_equipment_disconnect("hive",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                    <div class="cell warning" onclick=fetch_equipment_disconnect("hive_25",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
                                     <div class="cell warning">마지막 기록 : ${data_date.getFullYear()}년 ${data_date.getMonth()+1}월 ${data_date.getDate()}일 ${data_date.getHours()}시 ${data_date.getMinutes()}분</div>
                                 </div>`;
             }
@@ -527,7 +520,7 @@ function getdata_hive_25(send_data, device){
                                 <div class="cell" onclick=goal_temp_change("hive_25","${gorl_devid}","${device[0]}",5,null)>목표:<span id="${gorl_devid}">0</span>°C</div>
                             </div>
                             <div class="menu-row">
-                                <div class="cell warning" onclick=fetch_equipment_disconnect("hive",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
+                                <div class="cell warning" onclick=fetch_equipment_disconnect("hive_25",'${device[0]}') style="cursor:pointer;">장비 삭제</div>
                                 <div class="cell warning">데이터가 없음</div>
                             </div>`;
         }
