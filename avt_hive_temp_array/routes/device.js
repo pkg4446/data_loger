@@ -9,9 +9,10 @@ router.post('/log', async function(req, res) {
     if(req.body.dvid!=undefined){
         status = 200;
         req.body.dvid = req.body.dvid.replaceAll(":","_");
+        if(req.body.kind == undefined) req.body.kind = "array";
 
         const log_date = new Date();
-        const path_device = path_data.device("array")+"/"+req.body.dvid;
+        const path_device = path_data.device(req.body.kind)+"/"+req.body.dvid;
         const device_ip   = requestIp.getClientIp(req);
         let path_log = path_device+"/"+log_date.getFullYear()+"/";
         if(!await file_system.check(path_log)){await file_system.folderMK(path_log);}
