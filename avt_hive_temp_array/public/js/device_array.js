@@ -6,6 +6,10 @@ const mode_change   = {
     timeIndex   : null,
     absolute    : true
 }
+const sendData = {
+      id: localStorage.getItem('user'),
+      token: localStorage.getItem('token')
+    };
 
 function tracing() {
     mode_change.absolute = !mode_change.absolute;
@@ -13,10 +17,7 @@ function tracing() {
 }
 
 async function getlist(){
-    const sendData = {
-      id: localStorage.getItem('user'),
-      token: localStorage.getItem('token')
-    };
+    
     const response = await fetchData("request/list", sendData);
     const device_list = (await response.text()).split('\r\n');
     const device_mac  = window.location.pathname.replace("/web/array/","");
@@ -170,15 +171,14 @@ function drawing(key){
 }
 
 async function getdata(date_now){
-    const sendData = {
-        id:     localStorage.getItem('user'),
-        token:  localStorage.getItem('token'),
+    const reqData = {
+        ...sendData,
         type:   "array",
         dvid:   window.location.pathname.split("array/")[1],
         date:   [date_now.getFullYear(), date_now.getMonth(), date_now.getDate()]
     };
 
-    const response = await(await fetchData("request/log", sendData)).json();
+    const response = await(await fetchData("request/log", reqData)).json();
     
     const date_data = ""+date_now.getFullYear()+date_now.getMonth()+date_now.getDate();
     if(temperatures[date_data] === undefined) temperatures[date_data] = [];

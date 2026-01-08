@@ -2,6 +2,10 @@ import * as THREE from "three"; // importmap에서 "three" 경로를 참조합�
 import { OrbitControls } from "https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js"; // OrbitControls CDN 경로
 
 const divide_number = 15;
+const sendData = {
+    id: localStorage.getItem('user'),
+    token: localStorage.getItem('token')
+};
 
 class App {
     constructor() {
@@ -235,6 +239,7 @@ class App {
 
 function EquipmentManager() {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [log, setLog] = React.useState({});
     const [arrayDevices, setArrayDevices] = React.useState([]);
     const [allHiveData, setAllHiveData] = React.useState([]); // 모든 벌집 데이터 상태
     const [allTimes, setAllTimes] = React.useState([]); // 모든 시간 데이터 상태
@@ -266,13 +271,9 @@ function EquipmentManager() {
     }, [currentTimeIndex]);
 
     const loadDevices = async () => {
-        const sendData = {
-            id: localStorage.getItem('user'),
-            token: localStorage.getItem('token')
-        };
-
+        await getdata(new Date());
         const response = await fetchData("request/list", sendData);
-        const device_list = (await response.text()).split('\r\n');    
+        const device_list = (await response.text()).split('\r\n');
         console.log(device_list);    
         const tempArrayDevices = [];
 
@@ -285,6 +286,7 @@ function EquipmentManager() {
 
     // 날짜 변경 핸들러
     const handleDateChange = (event) => {
+        getdata(new Date(event.target.value));
         setSelectedDate(event.target.value);
         // 날짜가 변경되면 추가된 디바이스 목록 초기화
         setAddedDevices(new Set());
@@ -292,6 +294,22 @@ function EquipmentManager() {
         setAllTimes([]);
         setCurrentTimeIndex(0);
     };
+
+    const getdata = async (date_now) => {
+        const reqData = {
+            ...sendData,
+            type:   "mini_v3",
+            dvid:   window.location.pathname.split("mini_v3/")[1],
+            date:   [date_now.getFullYear(), date_now.getMonth(), date_now.getDate()]
+        };
+        const response = await(await fetchData("request/log", reqData)).json();
+        let times      = [];
+        setLog(response);
+        for (let index = 0; index < response.length; index++) {
+            times.push(response[index].date);
+        }
+        setAllTimes([times]);
+    }
 
     // 오늘 날짜를 YYYY-MM-DD 형식으로 반환
     const getTodayString = () => {
@@ -340,15 +358,13 @@ function EquipmentManager() {
 
                         // 선택된 날짜를 사용
                         const selectedDateObj = new Date(selectedDate);
-                        const sendData = {
-                            id:      localStorage.getItem('user'),
-                            token:   localStorage.getItem('token'),
+                        const reqData = {
+                            ...sendData,
                             type:    "array",
                             dvid:    status[0],
                             date:    [selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate()]
                         };
-                        const response = await(await fetchData("request/log", sendData)).json();
-
+                        const response = await(await fetchData("request/log", reqData)).json();
                         let temperatures = [];
                         let times        = [];
 
@@ -393,16 +409,13 @@ function EquipmentManager() {
                             }
                             data_array.push(datas);
                         }
-                        
                         // 데이터가 없는 경우 처리
                         if (data_array.length === 0) {
                             data_array = [new Array(120).fill(0)];
                         }
-                        
                         // 새로운 벌집 데이터 추가
                         setAllHiveData(prevData => [...prevData, data_array]);
                         setAllTimes(prevTimes => [...prevTimes, times]);
-                        
                         // 추가된 디바이스 목록에 추가
                         setAddedDevices(prevAdded => new Set([...prevAdded, status[0]]));
                     }
@@ -438,7 +451,7 @@ function EquipmentManager() {
                 className: "date-picker"
             }),
         // 시간 슬라이더 추가
-        allHiveData.length > 0 && React.createElement("div", {style:{margin:"10px",width:"100%"}}, [
+        React.createElement("div", {style:{margin:"10px",width:"100%"}}, [
             React.createElement("input", {
                 type: "range",
                 min: 0,
@@ -447,6 +460,7 @@ function EquipmentManager() {
                 onChange: handleTimeSliderChange,
                 className: "time-slider"
             }),
+            console.log("??",unifiedTimes,log),
             React.createElement("span", {style:{margin:"10px"}}, unifiedTimes.length > 0 ? 
                 `${currentTimeIndex + 1}/${unifiedTimes.length} - ${new Date(unifiedTimes[currentTimeIndex]) || ''}` : 
                 '시간 정보 없음'
