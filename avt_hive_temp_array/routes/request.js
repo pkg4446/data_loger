@@ -156,8 +156,7 @@ router.post('/arrange', async function(req, res) {
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
             console.log(user_data.data);
-            let new_list = "";
-            // file_system.fileMK(path_user,new_list,"device.csv");
+            file_system.fileMK(path_user,user_data.data,"device.csv");
         }else{
             status_code = 401;
         }

@@ -82,7 +82,7 @@ class App {
             if(found.length > 0) {
                 const clickedObj = found[0].object;
                 if(clickedObj.geometry.type == "BoxGeometry"){
-                    console.log("Box");
+                    // console.log("Box");
                 } else {
                     const hive_data = clickedObj.name.split('_');
                     if(hive_data[0] == "honeycomb"){
@@ -234,6 +234,7 @@ class App {
 }
 
 function EquipmentManager() {
+    const [isOpen, setIsOpen] = React.useState(false);
     const [arrayDevices, setArrayDevices] = React.useState([]);
     const [allHiveData, setAllHiveData] = React.useState([]); // 모든 벌집 데이터 상태
     const [allTimes, setAllTimes] = React.useState([]); // 모든 시간 데이터 상태
@@ -271,12 +272,13 @@ function EquipmentManager() {
         };
 
         const response = await fetchData("request/list", sendData);
-        const device_list = (await response.text()).split('\r\n');        
+        const device_list = (await response.text()).split('\r\n');    
+        console.log(device_list);    
         const tempArrayDevices = [];
 
         for (const device of device_list) {
             const status = device.split(',');
-            tempArrayDevices.push(status);
+            if(status[1]=="array") tempArrayDevices.push(status);
         }
         setArrayDevices(tempArrayDevices);
     };
@@ -413,7 +415,19 @@ function EquipmentManager() {
 
     return React.createElement("div", {}, [
         React.createElement("div", {className:"equipment-container"}, [
-            React.createElement("div", {className:"equipment-grid"}, renderArrayDevices())
+            React.createElement("div", {className:"equipment-grid"},
+                React.createElement("div", {className:"equipment-card"}, 
+                    React.createElement(
+                        "button", 
+                        { 
+                            key: "btn",
+                            className:"add-to-honeycomb",
+                            onClick: () => setIsOpen(!isOpen) 
+                        }, 
+                        isOpen ? "목록 닫기" : "장비 추가"
+                    )
+                ),
+                isOpen &&  renderArrayDevices())
         ]),
         // 날짜 선택기 추가
         React.createElement("input", {

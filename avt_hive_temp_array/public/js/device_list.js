@@ -59,9 +59,10 @@ function EquipmentManager() {
     return arrayDevices.map((status, index) => (
       React.createElement("div", { key: status[0], className: "device-table" }, [
         React.createElement("div", { 
-          className: "device-header", 
-          onClick: () => { location.href = "/web/array/" + status[0] }
-        }, status[2]),
+          className: "device-header device-row", 
+          onClick: () => { location.href = "/web/" + status[1] + "/" + status[0] }
+        }, React.createElement("div", { className: "device-label" }, status[1]),
+          React.createElement("div", { className: "device-value" }, status[2] )),
         React.createElement("div", { className: "device-row" }, [
           React.createElement("div", { className: "device-label" }, "ID"),
           React.createElement("div", { className: "device-value" }, status[0].replaceAll("_", ":"))
@@ -80,19 +81,15 @@ function EquipmentManager() {
     ));
   };
 
-  const navigateToArrange = (type) => {
-    location.href = "/web/arrange/" + type;
+  const navigateToArrange = () => {
+    location.href = "/web/arrange";
   };
 
   return React.createElement("div", {style: { width: "100%", margin: "auto" }}, [...renderArrayDevices(),
     arrayDevices.length > 0 && React.createElement("div", { 
-      className: "device-button", 
-      onClick: () => location.href = "/web/3D"
-    }, "3D Viewer"),
-    arrayDevices.length > 0 && React.createElement("div", { 
       className: "device-button",
-      // onClick: () => navigateToArrange("array")
-    }, "array 순서정렬")
+      onClick: () => navigateToArrange()
+    }, "순서정렬")
   ]);
 }
 

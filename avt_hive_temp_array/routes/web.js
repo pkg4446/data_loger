@@ -59,6 +59,13 @@ router.get('/array/:id', async function(req, res) {
     res.status(201).send(web_page);
 });
 
+router.get('/mini_v3/:id', async function(req, res) {
+    const css = html.css("common")+html.css("date")+html.css("hive_3D");
+    const js  = html.js("fetch")+html.js("login_text");
+    const web_page = await html.page("mini_v3",css,js);
+    res.status(201).send(web_page);
+});
+
 router.get('/connect', async function(req, res) {
     const css = html.css("common")+html.css("write")+html.css("user");
     const js  = html.js("fetch")+html.js("login_text")+html.js("device_reg");
@@ -66,10 +73,10 @@ router.get('/connect', async function(req, res) {
     res.status(201).send(web_page);
 });
 
-router.get('/3D', async function(req, res) {
-    const css = html.css("common")+html.css("date")+html.css("hive_3D");
-    const js  = html.js("fetch")+html.js("login_text");
-    const web_page = await html.page("hive_3D",css,js);
+router.get('/arrange', async function(req, res) {
+    const css = html.css("common")+html.css("arrange");
+    const js  = html.js("fetch")+html.js("login_text")+html.js("arrange");
+    const web_page = await html.page("arrange",css,js);
     res.status(201).send(web_page);
 });
 
