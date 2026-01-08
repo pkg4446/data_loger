@@ -196,7 +196,7 @@ async function getdata(date_now){
                 if(key == "lipo"){
                     if(bettery_data[date_data] == undefined) bettery_data[date_data] = {};
                     bettery_data[date_data][temperatures[date_data].length] = json[key];
-                }else if(key != "date"){
+                }else if(key != "date" && key != "kind"){
                     const element = json[key];
                     rawdata.push(element);
                 }
