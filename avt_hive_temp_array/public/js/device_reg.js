@@ -29,8 +29,10 @@ async function page_init() {
         React.createElement("h2",null,"장비등록"),
         React.createElement("form",{id:"userForm", onSubmit: handleSubmit},[
             React.createElement("div",{style:data_row},[
-                React.createElement("label",{style:cell, htmlFor:"device"},"온도센서"),
+                React.createElement("label",{style:cell, htmlFor:"device"},"센서_64"),
                 React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"array", defaultChecked:true}),
+                React.createElement("label",{style:cell, htmlFor:"device"},"센서__4"),
+                React.createElement("input",{style:cell, type:"radio", name:"device_type", value:"mini_v3"}),
             ]),
             React.createElement("div",{className:"input-group"},[
                 React.createElement("label",{htmlFor:"device"},"장비ID"),
