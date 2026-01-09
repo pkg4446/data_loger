@@ -17,6 +17,12 @@ section {
     gap: 10px;
     max-width: 100%;
 }
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    max-width: 100%;
+}
 @media (min-width: 760px) {
     .equipment-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -55,12 +61,13 @@ section {
 .equipment-card {
     background: white;
     border-radius: 15px;
-    padding: 20px;
+    padding: 5px;
     text-align: center;
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
     border: 3px solid transparent;
     cursor: pointer;
+    margin: 10px 0 10px 0;
 }
 
 .equipment-card:hover {
@@ -77,8 +84,8 @@ section {
 }
 
 .honeycomb-id {
-    display: inline-block;
-    padding: 4px 12px;
+    /* display: inline-block; */
+    padding: 4px 6px;
     border-radius: 15px;
     font-size: 0.8rem;
     font-weight: bold;
