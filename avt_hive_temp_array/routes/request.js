@@ -56,6 +56,37 @@ router.post('/log', async function(req, res) {
     res.status(status_code).send(response);
 });
 
+router.post('/slave', async function(req, res) {
+    let status_code = 400;
+    let response    = "nodata";
+    const user_data = req.body;
+    console.log(user_data);
+    if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined && user_data.method!=undefined){
+        if(await login_check.user(user_data.token,user_data.id)){
+            const   path_device = path_data.device(user_data.type)+"/"+user_data.dvid+"/";
+            if(await file_system.check(path_device)){
+                status_code = 200;
+                if(user_data.method == "write" && user_data.data){
+                    response = await file_system.fileMK(path_device,user_data.data,"slave.csv");
+                }else{
+                    if(await file_system.check(path_device+"slave.csv")){
+                        response = await file_system.fileRead(path_device,"slave.csv");
+                    }else{
+                        response = "";
+                    }
+                }
+            }else{
+                status_code = 403;
+                response    = "device";
+            }
+        }else{
+            status_code = 401;
+            response    = "user";
+        }
+    }
+    res.status(status_code).send(response);
+});
+
 router.post('/list', async function(req, res) {
     let status_code = 400;
     let response    = "nodata";

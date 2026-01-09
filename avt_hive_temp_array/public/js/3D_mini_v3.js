@@ -241,12 +241,11 @@ function EquipmentManager() {
     const [isOpen, setIsOpen] = React.useState(false);
     const [log, setLog] = React.useState([]);
     const [arrayDevices, setArrayDevices] = React.useState([]);
+    const [slaveDevices, setSlaveDevices] = React.useState([]);
+    const [addedList, setAddedList] = React.useState(new Set()); // 추가된 디바이스 추적
     const [allHiveData, setAllHiveData] = React.useState([]); // 모든 벌집 데이터 상태
     const [allTimes, setAllTimes] = React.useState([]); // 모든 시간 데이터 상태
     const [currentTimeIndex, setCurrentTimeIndex] = React.useState(0); // 현재 시간 인덱스
-    
-    const [slaveDevices, setSlaveDevices] = React.useState([]);
-    const [addedDevices, setAddedDevices] = React.useState(new Set()); // 추가된 디바이스 추적
     const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]); // 선택된 날짜 (YYYY-MM-DD 형식)
     const appRef = React.useRef(null); // App 클래스 인스턴스를 참조하기 위한 ref
 
@@ -260,7 +259,7 @@ function EquipmentManager() {
 
     // allHiveData가 변경될 때마다 _setModel_hive 호출
     React.useEffect(() => {
-        if (appRef.current && allHiveData.length > 0) {
+        if (appRef.current && allHiveData.length >= 0) {
             appRef.current._setModel_hive(allHiveData.length, allHiveData, currentTimeIndex);
         }
     }, [allHiveData]);
@@ -274,27 +273,117 @@ function EquipmentManager() {
 
     const loadDevices = async () => {
         await getdata(new Date());
-        const response = await fetchData("request/list", sendData);
-        const device_list = (await response.text()).split('\r\n');
-        console.log(device_list);    
-        const tempArrayDevices = [];
 
+        const reqData = {
+            ...sendData,
+            type:   "mini_v3",
+            dvid:   window.location.pathname.split("mini_v3/")[1],
+            method: "read"
+        };
+        const res_slave = await fetchData("request/slave", reqData);
+        const slave_list = (await res_slave.text()).split('\r\n');
+        setAddedList(new Set(slave_list));
+
+        const res_device = await fetchData("request/list", sendData);
+        const device_list = (await res_device.text()).split('\r\n');
+
+        let tempSlaveDevices = [];
+        for (const slave of slave_list) {
+            for (const device of device_list) {
+                const status = device.split(',');
+                if(status[0] == slave){
+                    tempSlaveDevices.push(status);
+                    break;
+                }
+            }
+            await get3D(slave);
+        }
+        setSlaveDevices(tempSlaveDevices);
+
+        let tempArrayDevices = [];
         for (const device of device_list) {
             const status = device.split(',');
             if(status[1]=="array") tempArrayDevices.push(status);
         }
         setArrayDevices(tempArrayDevices);
+
+        
     };
+
+    const get3D = async (device_id) => {
+        // 선택된 날짜를 사용
+        const selectedDateObj = new Date(selectedDate);
+        const reqData = {
+            ...sendData,
+            type:    "array",
+            dvid:    device_id,
+            date:    [selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate()]
+        };
+        const response = await(await fetchData("request/log", reqData)).json();
+        let temperatures = [];
+        let times        = [];
+
+        if(response.length>0){
+            for (let index = 0; index < response.length; index++) {
+                let rawdata = [];
+                const json = response[index];
+                times.push(json.date);
+                for (const key in json) {
+                    if(key != "date" && key != "lipo"){
+                        const element = json[key];
+                        rawdata.push(element);
+                    }
+                }
+                let temperature = [];
+                
+                for (let row = 0; row < rawdata[0].length; row++) {
+                    let temperature_array = [];
+                    for (let column = rawdata.length-1; column >= 0; column--) {
+                        if(temperature_array.length!=0)temperature_array.push((rawdata[row][column]+temperature_array[temperature_array.length-1])/2);
+                        temperature_array.push(rawdata[row][column]);
+                    }
+                    temperature.push(temperature_array);
+                }
+                temperatures.push(temperature);
+            }
+        }else{
+            // 데이터가 없는 경우 0으로 채운 배열 생성
+            const emptyData = new Array(120).fill(0);
+            temperatures = [emptyData];
+            times = [selectedDate]; // 선택된 날짜 사용
+        }
+        
+        let data_array = [];
+        for (let i = 0; i < temperatures.length; i++) {
+            const element = temperatures[i];
+            let datas = [];
+            for (const temps of element) {
+                if(temps){
+                    for (const temp of temps) {
+                        datas.push(temp);
+                    }
+                }
+            }
+            data_array.push(datas);
+        }
+        // 데이터가 없는 경우 처리
+        if (data_array.length === 0) {
+            data_array = [new Array(120).fill(0)];
+        }
+        // 새로운 벌집 데이터 추가
+        setAllHiveData(prevData => [...prevData, data_array]);
+        setAllTimes(prevTimes => [...prevTimes, times]);
+        // 추가된 디바이스 목록에 추가
+    }
 
     // 날짜 변경 핸들러
     const handleDateChange = (event) => {
-        getdata(new Date(event.target.value));
         setSelectedDate(event.target.value);
-        // 날짜가 변경되면 추가된 디바이스 목록 초기화
-        setAddedDevices(new Set());
+        // setAddedList(new Set()); // 날짜가 변경되면 추가된 디바이스 목록 초기화
         setAllHiveData([]);
         setAllTimes([]);
         setCurrentTimeIndex(0);
+        getdata(new Date(event.target.value));
     };
 
     const getdata = async (date_now) => {
@@ -311,6 +400,9 @@ function EquipmentManager() {
             times.push(response[index].date);
         }
         setAllTimes([times]);
+        for (const slave of addedList) {
+            await get3D(slave);
+        }
     }
 
     // 오늘 날짜를 YYYY-MM-DD 형식으로 반환
@@ -353,9 +445,9 @@ function EquipmentManager() {
             for (let index = 0; index < TEMP.length; index++) {
                 response.push(
                     React.createElement("div", { className: "equipment-card" }, [
-                        React.createElement("div", { className: "equipment-name" },"센서 "+index),
-                        React.createElement("div", { className: "honeycomb-id" },TEMP[index]+" ℃"),
-                        React.createElement("div", { className: "honeycomb-id" },HUMI[index]+" %")
+                        React.createElement("div", { className: "equipment-name ss" },"센서 "+index),
+                        React.createElement("div", { className: "honeycomb tp" },TEMP[index]+" ℃"),
+                        React.createElement("div", { className: "honeycomb hm" },HUMI[index]+" %")
                     ])
                 )
             }
@@ -365,24 +457,32 @@ function EquipmentManager() {
     };
 
     const renderAddedDevices = () => {
+        ()=>{console.log("??")}
         return slaveDevices.map((status, index) => (
             React.createElement("div", { key: status[0], className: "equipment-card" }, [
-                React.createElement("div", { className: "equipment-name" }, status[2]),
-                React.createElement("div", { className: "honeycomb-id" }, status[0].replaceAll("_", ":")),
-                React.createElement("div", { 
+                React.createElement("div", { className: "equipment-name id" }, status[2]),
+                React.createElement("div", { className: "honeycomb id" }, status[0].replaceAll("_", ":")),
+                isOpen?React.createElement("div", { 
                     className: "add-to-honeycomb",
                     onClick: async ()=>{
                         // 중복 방지 체크
                         setSlaveDevices((prevDevices) => 
-                            prevDevices.filter((_, remove) => remove !== indexToRemove)
+                            prevDevices.filter((_, remove) => remove !== index)
                         );
-                        setAddedDevices(prevSet => {
+                        setAllHiveData((prevDevices) => 
+                            prevDevices.filter((_, remove) => remove !== index)
+                        );
+                        setAllTimes((prevDevices) => 
+                            prevDevices.filter((_, remove) => remove !== index+1)
+                        );
+
+                        setAddedList(prevSet => {
                             const newSet = new Set(prevSet);
                             newSet.delete(status[0]);
                             return newSet;
                         });
                     }
-                },"제거")
+                },"제거"):null
             ])
         ));
     };
@@ -390,83 +490,21 @@ function EquipmentManager() {
 
     const renderArrayDevices = () => {
         return arrayDevices.map((status, index) => (
-            addedDevices.has(status[0]) ? null:
+            addedList.has(status[0]) ? null:
             React.createElement("div", { key: status[0], className: "equipment-card" }, [
-                React.createElement("div", { className: "equipment-name" }, status[2]),
-                React.createElement("div", { className: "honeycomb-id" }, status[0].replaceAll("_", ":")),
+                React.createElement("div", { className: "equipment-name id" }, status[2]),
+                React.createElement("div", { className: "honeycomb id" }, status[0].replaceAll("_", ":")),
                 React.createElement("div", { 
                     className: "add-to-honeycomb",
                     onClick: async ()=>{
                         // 중복 방지 체크
-                        if (addedDevices.has(status[0])) {
+                        if (addedList.has(status[0])) {
                             return; // 이미 추가된 디바이스면 함수 종료
                         }
-                        // 선택된 날짜를 사용
-                        const selectedDateObj = new Date(selectedDate);
-                        const reqData = {
-                            ...sendData,
-                            type:    "array",
-                            dvid:    status[0],
-                            date:    [selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate()]
-                        };
-                        const response = await(await fetchData("request/log", reqData)).json();
-                        let temperatures = [];
-                        let times        = [];
-
-                        if(response.length>0){
-                            for (let index = 0; index < response.length; index++) {
-                                let rawdata = [];
-                                const json = response[index];
-                                times.push(json.date);
-                                for (const key in json) {
-                                    if(key != "date" && key != "lipo"){
-                                        const element = json[key];
-                                        rawdata.push(element);
-                                    }
-                                }
-                                let temperature = [];
-                                
-                                for (let row = 0; row < rawdata[0].length; row++) {
-                                    let temperature_array = [];
-                                    for (let column = rawdata.length-1; column >= 0; column--) {
-                                        if(temperature_array.length!=0)temperature_array.push((rawdata[row][column]+temperature_array[temperature_array.length-1])/2);
-                                        temperature_array.push(rawdata[row][column]);
-                                    }
-                                    temperature.push(temperature_array);
-                                }
-                                temperatures.push(temperature);
-                            }
-                        }else{
-                            // 데이터가 없는 경우 0으로 채운 배열 생성
-                            const emptyData = new Array(120).fill(0);
-                            temperatures = [emptyData];
-                            times = [selectedDate]; // 선택된 날짜 사용
-                        }
-                        
-                        let data_array = [];
-                        for (let i = 0; i < temperatures.length; i++) {
-                            const element = temperatures[i];
-                            let datas = [];
-                            for (const temps of element) {
-                                if(temps){
-                                    for (const temp of temps) {
-                                        datas.push(temp);
-                                    }
-                                }
-                            }
-                            data_array.push(datas);
-                        }
-                        // 데이터가 없는 경우 처리
-                        if (data_array.length === 0) {
-                            data_array = [new Array(120).fill(0)];
-                        }
-                        // 새로운 벌집 데이터 추가
-                        setAllHiveData(prevData => [...prevData, data_array]);
-                        setAllTimes(prevTimes => [...prevTimes, times]);
-                        // 추가된 디바이스 목록에 추가
+                        await get3D(status[0])
                         setSlaveDevices(prevSlave => [...prevSlave, status]);
-                        setAddedDevices(prevAdded => new Set([...prevAdded, status[0]]));
-                    }},"추가")
+                        setAddedList(prevAdded => new Set([...prevAdded, status[0]]));
+                }},"추가")
             ])
         ));
     };
@@ -482,7 +520,33 @@ function EquipmentManager() {
                     key: "btn",
                     className:"equipment-card button",
                     style:{width:"100%"},
-                    onClick: () => setIsOpen(!isOpen) 
+                    onClick: async() => {
+                        setIsOpen(!isOpen);
+                        if(isOpen){
+                            alert("저장 되었습니다.")
+                            const reqData = {
+                                ...sendData,
+                                type:   "mini_v3",
+                                dvid:   window.location.pathname.split("mini_v3/")[1],
+                                method: "write",
+                                data:   ""
+                            };
+                            let slave_list = [];
+                            for (const device of addedList) {
+                                slave_list.push(device);
+                            }
+                            if(slave_list.length){
+                                reqData.data = slave_list[0];
+                                for (let index = 1; index < slave_list.length; index++) {
+                                    reqData.data += "\r\n" + slave_list[index];
+                                }
+                            }
+                            console.log(reqData);
+                            await fetchData("request/slave", reqData);
+                        }else{
+                            alert("소비 추가 후 목록 닫기를 눌러야 저장됩니다.")
+                        }
+                    }
                 }, 
                 isOpen ? "목록 닫기" : "소비 추가"
             )

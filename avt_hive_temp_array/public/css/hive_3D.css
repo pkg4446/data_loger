@@ -79,19 +79,38 @@ section {
 .equipment-name {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #8b4513;
     margin-bottom: 8px;
 }
+.equipment-name.id {
+    color: #8b4513;
+}
+.equipment-name.ss {
+    color: #1d8b13;
+}
 
-.honeycomb-id {
+.honeycomb {
     /* display: inline-block; */
     padding: 4px 6px;
     border-radius: 15px;
     font-size: 0.8rem;
     font-weight: bold;
     margin-bottom: 10px;
+}
+
+.honeycomb.id {
+    /* display: inline-block; */
     background: #e8f5e8;
     color: #2e7d32;
+}
+.honeycomb.tp {
+    /* display: inline-block; */
+    background: #f5e8e8;
+    color: #7d2e2e;
+}
+.honeycomb.hm {
+    /* display: inline-block; */
+    background: #e8e8f5;
+    color: #2e2f7d;
 }
 
 .add-to-honeycomb {
