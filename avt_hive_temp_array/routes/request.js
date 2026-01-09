@@ -66,7 +66,7 @@ router.post('/slave', async function(req, res) {
             const   path_device = path_data.device(user_data.type)+"/"+user_data.dvid+"/";
             if(await file_system.check(path_device)){
                 status_code = 200;
-                if(user_data.method == "write" && user_data.data){
+                if(user_data.method == "write" && user_data.data != undefined){
                     response = await file_system.fileMK(path_device,user_data.data,"slave.csv");
                 }else{
                     if(await file_system.check(path_device+"slave.csv")){

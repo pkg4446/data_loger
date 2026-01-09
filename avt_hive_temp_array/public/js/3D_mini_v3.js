@@ -459,7 +459,9 @@ function EquipmentManager() {
     const renderAddedDevices = () => {
         ()=>{console.log("??")}
         return slaveDevices.map((status, index) => (
-            React.createElement("div", { key: status[0], className: "equipment-card" }, [
+            React.createElement("div", { key: status[0], className: "equipment-card",
+                onClick: async ()=>{if(!isOpen) location.href = "/web/" + status[1] + "/" + status[0];}
+            }, [
                 React.createElement("div", { className: "equipment-name id" }, status[2]),
                 React.createElement("div", { className: "honeycomb id" }, status[0].replaceAll("_", ":")),
                 isOpen?React.createElement("div", { 
