@@ -151,7 +151,7 @@ class App {
     }
 
     // 기존의 모든 벌집을 제거하고 새롭게 생성합니다.
-    _setModel_hive(num, allHiveData, currentTimeIndex = 0) { // currentTimeIndex 매개변수 추가
+    _setModel_hive(num, allHiveData, currentTimeIndex = 0,tempMin,tempMax) { // currentTimeIndex 매개변수 추가
         // 기존 벌집 제거
         this.hive.forEach(honeycombArray => {
             honeycombArray.forEach(honeycomb => {
@@ -161,10 +161,9 @@ class App {
             });
         });
         this.hive = []; // 벌집 배열 초기화
-
         const data_number = 120;
         let geometry = new THREE.CylinderGeometry( 0.2, 0.2, 0.1, 6 )
-        
+
         for (let index = 0; index < num; index++) {
             let honeycomb = [];
             let honeycomb_hight = 0;
@@ -179,10 +178,10 @@ class App {
                 
                 // 온도 데이터를 기반으로 색상 설정
                 const temp = currentHiveTemps[honeycomb_index % currentHiveTemps.length]; // 데이터가 부족할 경우를 대비
-                const color = getColor(temp !== undefined ? temp : 0); // 온도 데이터가 없으면 기본값 0 사용
+                const color = getColor(temp !== undefined ? temp : 0,tempMin,tempMax); // 온도 데이터가 없으면 기본값 0 사용
                 
                 let material = new THREE.MeshBasicMaterial( {
-                    color: color, // getColor 함수로 설정
+                    color: color,
                     side: THREE.BackSide
                 });
                 
@@ -200,9 +199,9 @@ class App {
     }
 
     // 색상만 업데이트하는 메소드 추가
-    updateHiveColors(allHiveData, currentTimeIndex = 0) {
+    updateHiveColors(allHiveData, currentTimeIndex = 0,tempMin,tempMax) {
         const data_number = 120;
-        
+        console.log("색상변경2");
         for (let index = 0; index < this.hive.length; index++) {
             // 현재 시간 인덱스에 해당하는 온도 데이터 가져오기
             const currentHiveTemps = allHiveData[index] && allHiveData[index][currentTimeIndex] 
@@ -211,7 +210,7 @@ class App {
             
             for (let honeycomb_index = 0; honeycomb_index < this.hive[index].length; honeycomb_index++) {
                 const temp = currentHiveTemps[honeycomb_index % currentHiveTemps.length];
-                const color = getColor(temp !== undefined ? temp : 0);
+                const color = getColor(temp !== undefined ? temp : 0,tempMin,tempMax);
                 this.hive[index][honeycomb_index].material.color.set(color);
             }
         }
@@ -239,6 +238,9 @@ class App {
 
 function EquipmentManager() {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [isMode, setIsMode] = React.useState(false);
+    const [tempMax, setTempMax] = React.useState(0);
+    const [tempMin, setTempMin] = React.useState(0);
     const [log, setLog] = React.useState([]);
     const [arrayDevices, setArrayDevices] = React.useState([]);
     const [slaveDevices, setSlaveDevices] = React.useState([]);
@@ -260,14 +262,33 @@ function EquipmentManager() {
     // allHiveData가 변경될 때마다 _setModel_hive 호출
     React.useEffect(() => {
         if (appRef.current && allHiveData.length >= 0) {
-            appRef.current._setModel_hive(allHiveData.length, allHiveData, currentTimeIndex);
+
+            let Maxtemp = -2000;
+            let Mintemp = 4000;
+            for (const hive of allHiveData) {
+                for (const element of hive) {
+                    const data_number = parseInt(element);
+                    if(data_number>Maxtemp) Maxtemp=data_number;
+                    if(data_number<Mintemp) Mintemp=data_number;
+                }
+            }
+            Maxtemp/=100;
+            Mintemp/=100;
+            if(Maxtemp <= Mintemp){
+                Mintemp--;
+                Maxtemp++;
+            }
+            setTempMax(Math.round(Maxtemp));
+            setTempMin(Math.floor(Mintemp));
+
+            appRef.current._setModel_hive(allHiveData.length, allHiveData, currentTimeIndex,isMode?Mintemp:20,isMode?Maxtemp:40);
         }
     }, [allHiveData]);
 
     // currentTimeIndex가 변경될 때마다 색상만 업데이트
     React.useEffect(() => {
         if (appRef.current && allHiveData.length > 0) {
-            appRef.current.updateHiveColors(allHiveData, currentTimeIndex);
+            appRef.current.updateHiveColors(allHiveData, currentTimeIndex,isMode?tempMin:20,isMode?tempMax:40);
         }
     }, [currentTimeIndex]);
 
@@ -282,21 +303,23 @@ function EquipmentManager() {
         };
         const res_slave = await fetchData("request/slave", reqData);
         const slave_list = (await res_slave.text()).split('\r\n');
-        setAddedList(new Set(slave_list));
+        if(slave_list.length && slave_list[0]!="") setAddedList(new Set(slave_list));
 
         const res_device = await fetchData("request/list", sendData);
         const device_list = (await res_device.text()).split('\r\n');
 
         let tempSlaveDevices = [];
         for (const slave of slave_list) {
-            for (const device of device_list) {
-                const status = device.split(',');
-                if(status[0] == slave){
-                    tempSlaveDevices.push(status);
-                    break;
+            if(slave != ""){
+                for (const device of device_list) {
+                    const status = device.split(',');
+                    if(status[0] == slave){
+                        tempSlaveDevices.push(status);
+                        break;
+                    }
                 }
+                await get3D(slave);
             }
-            await get3D(slave);
         }
         setSlaveDevices(tempSlaveDevices);
 
@@ -329,7 +352,7 @@ function EquipmentManager() {
                 const json = response[index];
                 times.push(json.date);
                 for (const key in json) {
-                    if(key != "date" && key != "lipo"){
+                    if(key != "date" && key != "lipo" && key != "kind"){
                         const element = json[key];
                         rawdata.push(element);
                     }
@@ -457,7 +480,6 @@ function EquipmentManager() {
     };
 
     const renderAddedDevices = () => {
-        ()=>{console.log("??")}
         return slaveDevices.map((status, index) => (
             React.createElement("div", { key: status[0], className: "equipment-card",
                 onClick: async ()=>{if(!isOpen) location.href = "/web/" + status[1] + "/" + status[0];}
@@ -516,42 +538,58 @@ function EquipmentManager() {
     return React.createElement("div",{style:{width:"100%"}}, [
         React.createElement("div", {className:"equipment-container"}, [
             React.createElement("div", {className:"data-grid"},[dataDevice(),
-                React.createElement(
-                "button", 
-                { 
-                    key: "btn",
-                    className:"equipment-card button",
-                    style:{width:"100%"},
-                    onClick: async() => {
-                        setIsOpen(!isOpen);
-                        if(isOpen){
-                            alert("저장 되었습니다.")
-                            const reqData = {
-                                ...sendData,
-                                type:   "mini_v3",
-                                dvid:   window.location.pathname.split("mini_v3/")[1],
-                                method: "write",
-                                data:   ""
-                            };
-                            let slave_list = [];
-                            for (const device of addedList) {
-                                slave_list.push(device);
+                React.createElement("div", {className:"equipment-card"},[
+                    React.createElement(
+                        "button", 
+                        { 
+                            key: "btn2",
+                            className:" button",
+                            style:{width:"100%"},
+                            onClick: async() => {
+                                if (appRef.current && allHiveData.length > 0) {
+                                    appRef.current.updateHiveColors(allHiveData, currentTimeIndex,!isMode?tempMin:20,!isMode?tempMax:40);
+                                }
+                                setIsMode(!isMode);
                             }
-                            if(slave_list.length){
-                                reqData.data = slave_list[0];
-                                for (let index = 1; index < slave_list.length; index++) {
-                                    reqData.data += "\r\n" + slave_list[index];
+                        }, 
+                        isMode ? "Relative" : "Absolute"
+                    ),
+                    React.createElement(
+                        "button", 
+                        { 
+                            key: "btn2",
+                            className:" button",
+                            style:{width:"100%"},
+                            onClick: async() => {
+                                setIsOpen(!isOpen);
+                                if(isOpen){
+                                    alert("저장 되었습니다.")
+                                    const reqData = {
+                                        ...sendData,
+                                        type:   "mini_v3",
+                                        dvid:   window.location.pathname.split("mini_v3/")[1],
+                                        method: "write",
+                                        data:   ""
+                                    };
+                                    let slave_list = [];
+                                    for (const device of addedList) {
+                                        slave_list.push(device);
+                                    }
+                                    if(slave_list.length){
+                                        reqData.data = slave_list[0];
+                                        for (let index = 1; index < slave_list.length; index++) {
+                                            reqData.data += "\r\n" + slave_list[index];
+                                        }
+                                    }
+                                    await fetchData("request/slave", reqData);
+                                }else{
+                                    alert("소비 추가 또는 제거 후 목록 닫기를 눌러야 저장됩니다.")
                                 }
                             }
-                            console.log(reqData);
-                            await fetchData("request/slave", reqData);
-                        }else{
-                            alert("소비 추가 후 목록 닫기를 눌러야 저장됩니다.")
-                        }
-                    }
-                }, 
-                isOpen ? "목록 닫기" : "소비 추가"
-            )
+                        }, 
+                        isOpen ? "목록 닫기" : "소비 변경"
+                    ),
+                ])
             ])
         ]),
         React.createElement("div", {className:"equipment-container"}, [
@@ -593,9 +631,7 @@ function initEquipment() {
     root.render(React.createElement(EquipmentManager));
 }
 
-function getColor(temp) {
-    const minTemp = 20;
-    const maxTemp = 40;
+function getColor(temp,minTemp,maxTemp) {
     const normalizedTemp = Math.max(0, Math.min(1, (temp/100 - minTemp) / (maxTemp - minTemp))); // 0-1 범위로 제한
     let r, g, b;
     
