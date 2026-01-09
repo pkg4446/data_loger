@@ -508,7 +508,9 @@ function EquipmentManager() {
     const unifiedTimes = getUnifiedTimes();
 
     return React.createElement("div",{style:{width:"100%"}}, [
-        dataDevices(),
+        React.createElement("div", {className:"equipment-container"}, [
+            React.createElement("div", {className:"equipment-grid"},dataDevices())
+        ]),
         React.createElement(
                 "button", 
                 { 
