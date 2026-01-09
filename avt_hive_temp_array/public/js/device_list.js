@@ -69,11 +69,11 @@ function EquipmentManager() {
         ]),
         React.createElement("div", { className: "device-row" }, [
           React.createElement("div", { 
-            className: "device-button", 
+            className: "button", 
             onClick: () => handleDelete(status[0])
           }, "장비삭제"),
           React.createElement("div", { 
-            className: "device-button", 
+            className: "button", 
             onClick: () => handleRename(status[0], status[2])
           }, "이름변경")
         ])
@@ -87,7 +87,7 @@ function EquipmentManager() {
 
   return React.createElement("div", {style: { width: "100%", margin: "auto" }}, [...renderArrayDevices(),
     arrayDevices.length > 0 && React.createElement("div", { 
-      className: "device-button",
+      className: "button",
       onClick: () => navigateToArrange()
     }, "순서정렬")
   ]);

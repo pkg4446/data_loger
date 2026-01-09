@@ -343,6 +343,87 @@ function EquipmentManager() {
         return longestTimeArray;
     };
 
+    const dataDevices = () => {
+        return arrayDevices.map((status, index) => (
+            React.createElement("div", { key: status[0], className: "equipment-card" }, [
+                React.createElement("div", { className: "equipment-name" }, status[2]),
+                React.createElement("div", { className: "honeycomb-id" }, status[0].replaceAll("_", ":")),
+                React.createElement("div", { 
+                    className: addedDevices.has(status[0]) ? "added-to-honeycomb" : "add-to-honeycomb",
+                    onClick: async ()=>{
+                        // 중복 방지 체크
+                        if (addedDevices.has(status[0])) {
+                            return; // 이미 추가된 디바이스면 함수 종료
+                        }
+
+                        // 선택된 날짜를 사용
+                        const selectedDateObj = new Date(selectedDate);
+                        const reqData = {
+                            ...sendData,
+                            type:    "array",
+                            dvid:    status[0],
+                            date:    [selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate()]
+                        };
+                        const response = await(await fetchData("request/log", reqData)).json();
+                        let temperatures = [];
+                        let times        = [];
+
+                        if(response.length>0){
+                            for (let index = 0; index < response.length; index++) {
+                                let rawdata = [];
+                                const json = response[index];
+                                times.push(json.date);
+                                for (const key in json) {
+                                    if(key != "date" && key != "lipo"){
+                                        const element = json[key];
+                                        rawdata.push(element);
+                                    }
+                                }
+                                let temperature = [];
+                                
+                                for (let row = 0; row < rawdata[0].length; row++) {
+                                    let temperature_array = [];
+                                    for (let column = rawdata.length-1; column >= 0; column--) {
+                                        if(temperature_array.length!=0)temperature_array.push((rawdata[row][column]+temperature_array[temperature_array.length-1])/2);
+                                        temperature_array.push(rawdata[row][column]);
+                                    }
+                                    temperature.push(temperature_array);
+                                }
+                                temperatures.push(temperature);
+                            }
+                        }else{
+                            // 데이터가 없는 경우 0으로 채운 배열 생성
+                            const emptyData = new Array(120).fill(0);
+                            temperatures = [emptyData];
+                            times = [selectedDate]; // 선택된 날짜 사용
+                        }
+                        
+                        let data_array = [];
+                        for (let i = 0; i < temperatures.length; i++) {
+                            const element = temperatures[i];
+                            let datas = [];
+                            for (const temps of element) {
+                                for (const temp of temps) {
+                                    datas.push(temp);
+                                }        
+                            }
+                            data_array.push(datas);
+                        }
+                        // 데이터가 없는 경우 처리
+                        if (data_array.length === 0) {
+                            data_array = [new Array(120).fill(0)];
+                        }
+                        // 새로운 벌집 데이터 추가
+                        setAllHiveData(prevData => [...prevData, data_array]);
+                        setAllTimes(prevTimes => [...prevTimes, times]);
+                        // 추가된 디바이스 목록에 추가
+                        setAddedDevices(prevAdded => new Set([...prevAdded, status[0]]));
+                    }
+                }, addedDevices.has(status[0]) ? "추가됨" : "추가"),
+            ])
+        ));
+    };
+
     const renderArrayDevices = () => {
         return arrayDevices.map((status, index) => (
             React.createElement("div", { key: status[0], className: "equipment-card" }, [
@@ -426,22 +507,21 @@ function EquipmentManager() {
 
     const unifiedTimes = getUnifiedTimes();
 
-    return React.createElement("div", {}, [
-        React.createElement("div", {className:"equipment-container"}, [
-            React.createElement("div", {className:"equipment-grid"},
-                React.createElement("div", {className:"equipment-card"}, 
-                    React.createElement(
-                        "button", 
-                        { 
-                            key: "btn",
-                            className:"add-to-honeycomb",
-                            onClick: () => setIsOpen(!isOpen) 
-                        }, 
-                        isOpen ? "목록 닫기" : "장비 추가"
-                    )
-                ),
-                isOpen &&  renderArrayDevices())
-        ]),
+    return React.createElement("div",{style:{width:"100%"}}, [
+        dataDevices(),
+        React.createElement(
+                "button", 
+                { 
+                    key: "btn",
+                    className:"button",
+                    style:{width:"100%"},
+                    onClick: () => setIsOpen(!isOpen) 
+                }, 
+                isOpen ? "목록 닫기" : "장비 추가"
+            ),
+        isOpen && React.createElement("div", {className:"equipment-container"}, [
+                React.createElement("div", {className:"equipment-grid"},renderArrayDevices())
+            ]),
         // 날짜 선택기 추가
         React.createElement("input", {
                 type: "date",
