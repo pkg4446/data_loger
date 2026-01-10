@@ -112,6 +112,11 @@ section {
     background: #e8e8f5;
     color: #2e2f7d;
 }
+.honeycomb.sc {
+    /* display: inline-block; */
+    background: #e8e8f5;
+    color: #6d2e7d;
+}
 
 .add-to-honeycomb {
     background: linear-gradient(135deg, #ffa000, #ff8f00);

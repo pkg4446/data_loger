@@ -60,7 +60,6 @@ router.post('/slave', async function(req, res) {
     let status_code = 400;
     let response    = "nodata";
     const user_data = req.body;
-    console.log(user_data);
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined && user_data.method!=undefined){
         if(await login_check.user(user_data.token,user_data.id)){
             const   path_device = path_data.device(user_data.type)+"/"+user_data.dvid+"/";
@@ -129,7 +128,6 @@ router.post('/able', async function(req, res) {
 router.post('/connect', async function(req, res) {
     let status_code = 400;
     const user_data = req.body;
-    console.log(user_data)
     if(user_data.id!=undefined && user_data.token!=undefined && user_data.dvid!=undefined && user_data.type!=undefined && user_data.name!=undefined && user_data.name.length>0){
         user_data.name = user_data.name.replaceAll(' ',"_");
         if(await login_check.user(user_data.token,user_data.id)){
@@ -186,7 +184,6 @@ router.post('/arrange', async function(req, res) {
         const   path_user   = path_data.user(user_data.id);
         if(await login_check.user(user_data.token,user_data.id)){
             status_code = 200;
-            console.log(user_data.data);
             file_system.fileMK(path_user,user_data.data,"device.csv");
         }else{
             status_code = 401;

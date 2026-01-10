@@ -605,20 +605,29 @@ function EquipmentManager() {
                     className: "date-picker"
                 }),
             // 시간 슬라이더 추가
-            React.createElement("div", {style:{margin:"10px",width:"100%"}}, [
-                React.createElement("input", {
-                    type: "range",
-                    min: 0,
-                    max: Math.max(0, unifiedTimes.length - 1),
-                    value: currentTimeIndex,
-                    onChange: handleTimeSliderChange,
-                    className: "time-slider"
-                }),
-                React.createElement("span", {style:{margin:"10px"}}, unifiedTimes.length > 0 ? 
-                    `${currentTimeIndex + 1}/${unifiedTimes.length} - ${new Date(unifiedTimes[currentTimeIndex]) || ''}` : 
-                    '시간 정보 없음'
-                )
-            ])
+            React.createElement("div", {style:{margin:"10px", width:"100%"}}, [
+                React.createElement("div", {style:{margin:"10px",width:"100%"}}, [
+                    React.createElement("input", {
+                        type: "range",
+                        min: 0,
+                        max: Math.max(0, unifiedTimes.length - 1),
+                        value: currentTimeIndex,
+                        onChange: handleTimeSliderChange,
+                        className: "time-slider"
+                    }),
+                    React.createElement("span", {style:{margin:"10px"}}, unifiedTimes.length > 0 ? 
+                        `${currentTimeIndex + 1}/${unifiedTimes.length} - ${new Date(unifiedTimes[currentTimeIndex]) || ''}` : 
+                        '시간 정보 없음'
+                    )
+                ]),
+                React.createElement("div", { style: {width: "100%" } }, [
+                    React.createElement(ScaleBar, { 
+                        tempMin: tempMin, 
+                        tempMax: tempMax, 
+                        isMode: isMode 
+                    })
+                ]),
+            ]),
         ]),
         isOpen && React.createElement("div", {className:"equipment-container"}, [
             React.createElement("div", {className:"equipment-grid"},renderArrayDevices())
@@ -653,6 +662,55 @@ function getColor(temp,minTemp,maxTemp) {
         r = 255;
     }
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+}
+
+function ScaleBar({ tempMin, tempMax, isMode }) {
+    const canvasRef = React.useRef(null);
+
+    React.useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const width = canvas.offsetWidth;
+        const height = canvas.offsetHeight;
+        
+        canvas.width = width;
+        canvas.height = height;
+
+        // 실제 표시될 온도 범위 결정
+        const displayMin = isMode ? tempMin : 20;
+        const displayMax = isMode ? tempMax : 40;
+
+        // 그라데이션 그리기
+        for (let i = 0; i < width; i++) {
+            // getColor 함수는 temp 파라미터를 100으로 나누어 계산하므로 여기서 100을 곱해줍니다.
+            const currentTemp = (displayMin + (displayMax - displayMin) * (i / width)) * 100;
+            const color = getColor(currentTemp, displayMin, displayMax);
+            ctx.fillStyle = color;
+            ctx.fillRect(i, 0, 1, height);
+        }
+    }, [tempMin, tempMax, isMode]); // 온도나 모드가 바뀔 때마다 다시 그림
+
+    const displayMin = isMode ? tempMin : 20;
+    const displayMax = isMode ? tempMax : 40;
+    const steps = 5;
+    const markers = [];
+    
+    for (let i = 0; i <= steps; i++) {
+        const val = displayMin + (displayMax - displayMin) * (i / steps);
+        markers.push(val.toFixed(1) + "°C");
+    }
+
+    return React.createElement("div", { style: { width: "100%", padding: "10px" } }, [
+        React.createElement("canvas", {
+            ref: canvasRef,
+            style: { width: "100%", height: "20px", borderRadius: "4px", display: "block" }
+        }),
+        React.createElement("div", {
+            style: { marginTop:"5px", display: "flex", justifyContent: "space-between", fontSize: "12px"}
+        }, markers.map(m => React.createElement("span", { className:"honeycomb sc", key: m }, m)))
+    ]);
 }
 
 // React와 ReactDOM을 import합니다.
