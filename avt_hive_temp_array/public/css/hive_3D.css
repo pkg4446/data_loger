@@ -10,7 +10,12 @@ section {
     min-width: 385px;
     min-height: 700px;
 }
-
+.other-devices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    justify-content: space-between;
+    max-width: 100%;
+}
 .equipment-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

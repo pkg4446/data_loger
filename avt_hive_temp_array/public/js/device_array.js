@@ -16,15 +16,21 @@ function tracing() {
     updateHoneycomb(mode_change.key, mode_change.timeIndex)
 }
 
-async function getlist(){
-    
-    const response = await fetchData("request/list", sendData);
+async function getlist(){    
+    const response = await fetchData("request/li st", sendData);
     const device_list = (await response.text()).split('\r\n');
     const device_mac  = window.location.pathname.replace("/web/array/","");
-    console.log(device_mac);
+    for (let index = 0; index < device_list.length; index++) {
+        const device_kind = device_list[index].split(",")[1];
+        if(device_kind=="mini_v3"){
+            device_list.splice(index, 1);
+        }
+    }
+    console.log(device_list);
     for (let index = 0; index < device_list.length; index++) {
         const device_now = device_list[index].split(",")[0];
         if(device_mac == device_now){
+            console.log();
             const device_prev = index == 0 ? device_list[device_list.length-1].split(","):device_list[index-1].split(",");
             const device_next = index == device_list.length-1 ? device_list[0].split(","):device_list[index+1].split(",");
             document.getElementById('device_prev').innerHTML=`<button class="control" onclick="location.href='/web/array/${device_prev[0]}'">${device_prev[2]}</button>`;

@@ -242,6 +242,7 @@ function EquipmentManager() {
     const [tempMax, setTempMax] = React.useState(0);
     const [tempMin, setTempMin] = React.useState(0);
     const [log, setLog] = React.useState([]);
+    const [miniv3Devices, setMiniv3Devices] = React.useState([]);
     const [arrayDevices, setArrayDevices] = React.useState([]);
     const [slaveDevices, setSlaveDevices] = React.useState([]);
     const [addedList, setAddedList] = React.useState(new Set()); // 추가된 디바이스 추적
@@ -323,14 +324,37 @@ function EquipmentManager() {
         }
         setSlaveDevices(tempSlaveDevices);
 
-        let tempArrayDevices = [];
+        let Devices_Array = [];
+        let Devices_mini_v3 = [];
         for (const device of device_list) {
             const status = device.split(',');
-            if(status[1]=="array") tempArrayDevices.push(status);
+            if(status[1]=="array") Devices_Array.push(status);
+            else if(status[1]=="mini_v3")  Devices_mini_v3.push(status);
         }
-        setArrayDevices(tempArrayDevices);
-
-        
+        let Devices_prev_next = [];
+        const device_now = window.location.pathname.split("mini_v3/")[1];
+        if(Devices_mini_v3.length == 1){
+            Devices_prev_next.push(Devices_mini_v3[0]);
+            Devices_prev_next.push(Devices_mini_v3[0]);
+        }else{
+            for (let index = 0;  index < Devices_mini_v3.length; index++) {
+                if(device_now == Devices_mini_v3[index][0]){
+                    if(index==0){
+                        Devices_prev_next.push(Devices_mini_v3[Devices_mini_v3.length-1]);
+                        Devices_prev_next.push(Devices_mini_v3[1]);
+                    }else if((index==(Devices_mini_v3.length-1))){
+                        Devices_prev_next.push(Devices_mini_v3[index-1]);
+                        Devices_prev_next.push(Devices_mini_v3[0]);
+                    }else{
+                        Devices_prev_next.push(Devices_mini_v3[index-1]);
+                        Devices_prev_next.push(Devices_mini_v3[index+1]);
+                    }
+                    break;
+                }            
+            }
+        }
+        setArrayDevices(Devices_Array);
+        setMiniv3Devices(Devices_prev_next);
     };
 
     const get3D = async (device_id) => {
@@ -539,6 +563,33 @@ function EquipmentManager() {
         React.createElement("div", {className:"equipment-container"}, [
             React.createElement("div", {className:"data-grid"},[dataDevice(),
                 React.createElement("div", {className:"equipment-card"},[
+                    React.createElement("div", {className:"other-devices",style:{gap:"0px"}},[
+                        miniv3Devices.length>1?[
+                        React.createElement(
+                            "button", 
+                            { 
+                                key: "btn_prev",
+                                className:" button",
+                                style:{width:"100%"},
+                                onClick: async() => {
+                                    location.href = "/web/mini_v3/" + miniv3Devices[0][0]
+                                }
+                            },
+                            miniv3Devices[0][2]
+                        ),
+                        React.createElement(
+                            "button", 
+                            { 
+                                key: "btn_next",
+                                className:" button",
+                                style:{width:"100%"},
+                                onClick: async() => {
+                                    location.href = "/web/mini_v3/" + miniv3Devices[1][0]
+                                }
+                            },
+                            miniv3Devices[1][2]
+                        )]:[null]
+                    ]),                    
                     React.createElement(
                         "button", 
                         { 
