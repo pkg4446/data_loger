@@ -624,15 +624,10 @@ async function fetch_equipment(init) {
         body: JSON.stringify(post_data)
     });
 
-    if (pump.status==400 || pump.status==401) {
-        alert_swal("error",'로그인 정보가 없습니다.');
-        window.location.href = '/web/login';
-    }else if (pump.status==403 && hive.status==403) {
-        alert_swal("error",'등록된 장비가 없습니다.');
-        window.location.href = '/web/connect';
-    }
-
+    let equipment_flage = true;
+    
     if (pump.status==200) {
+        equipment_flage = false;
         const devices = (await pump.text()).split("\r\n");
         let pump_list = [];
         if(init){
@@ -650,6 +645,7 @@ async function fetch_equipment(init) {
     }
     
     if (hive.status==200) {
+        equipment_flage = false;
         const devices = (await hive.text()).split("\r\n");
         let device_list = [];
         if(init){
@@ -669,6 +665,7 @@ async function fetch_equipment(init) {
     }
 
     if (hive_25.status==200) {
+        equipment_flage = false;
         const devices = (await hive_25.text()).split("\r\n");
         let device_list = [];
         if(init){
@@ -684,6 +681,10 @@ async function fetch_equipment(init) {
         for (let index = 0; index < device_list.length; index++) {
             getdata_hive_25(post_data,device_list[index]);
         }
+    }
+
+    if (equipment_flage) {
+        window.location.href = '/web/connect';
     }
 }
 ////-------------------////
