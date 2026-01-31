@@ -159,7 +159,9 @@ function echarts_draw(draw_data,hive_index,raw,fromat,dom,data,calibrate) {
     if(data == "HM"){
         option_basic.yAxis.min = 0;
         option_basic.yAxis.max = 100;
-    }else if(data == "TM") option_basic.yAxis.min = -10;
+    }else if(data == "TM"){
+        option_basic.yAxis.min = -10;
+    }
     const data_number = 4;
     for (let index = 0; index < data_number; index++) {
         option_basic.series.push(
@@ -173,7 +175,7 @@ function echarts_draw(draw_data,hive_index,raw,fromat,dom,data,calibrate) {
         );
     }
     
-    let moving_average = 1;
+    let moving_average = 3;
     const average_length_minute = 30; //이동평균 범위
     if(draw_data.length>1){
         moving_average = average_length_minute/Math.round(draw_data[0].GAP/60);
@@ -188,34 +190,49 @@ function echarts_draw(draw_data,hive_index,raw,fromat,dom,data,calibrate) {
         }
     }
     const option = JSON.parse(JSON.stringify(option_basic));
-    let   moving = {};
+    
+    let moving = {};
 
-    if(draw_data != undefined && draw_data.length != 0){
-        for (let index = 0; index < draw_data.length; index++) {
-            for (let axis_x = 0; axis_x < data_number; axis_x++) {
-                if(hive_index == data_number || axis_x == hive_index){
-                    if(raw){
-                        option.series[axis_x].data.push(draw_data[index][data][axis_x]-calibrate);
-                    }else{
-                        if(moving[axis_x] == undefined) moving[axis_x] = [];
-                        if(moving_average>index){
-                            moving[axis_x].push(parseFloat(draw_data[index][data][axis_x]));
-                        }else{
-                            moving[axis_x][index%moving_average] = parseFloat(draw_data[index][data][axis_x]);
-                        }
-                        let moving_data = 0;
-                        let divide_moving_average = moving_average;
-                        if(moving_average>index) divide_moving_average = index+1;
-                        for (let index_t = 0; index_t < divide_moving_average; index_t++) {
-                            moving_data += moving[axis_x][index_t];
-                        }
-                        const ans_data = (moving_data/divide_moving_average)-calibrate;
-                        option.series[axis_x].data.push(ans_data.toFixed(2));
+    if (draw_data && draw_data.length > 0) {
+        for (let axis_x = 0; axis_x < data_number; axis_x++) {
+            // 불필요한 연산 방지를 위해 조건 체크를 최상단으로 이동
+            if (hive_index !== data_number && axis_x !== hive_index) continue;
+
+            if (raw) {
+                option.series[axis_x].data = draw_data.map(item => {
+                    const val = parseFloat(item[data][axis_x]);
+                    return isNaN(val) ? null : val - calibrate; // NaN은 차트에서 끊겨 보이게 null 처리
+                });
+            } else {
+                let sum = 0;
+                let window = []; // 유효한 숫자만 담는 큐(Queue)
+
+                for (let index = 0; index < draw_data.length; index++) {
+                    const val = parseFloat(draw_data[index][data][axis_x]);
+
+                    // 1. NaN인 경우: 계산을 건너뛰고 이전 평균값 또는 null을 유지
+                    if (isNaN(val)) {
+                        // 차트의 연속성을 위해 null을 넣거나, 마지막 계산값을 push할 수 있습니다.
+                        option.series[axis_x].data.push(null); 
+                        continue;
                     }
+
+                    // 2. 유효한 숫자인 경우만 합계 및 윈도우 관리
+                    sum += val;
+                    window.push(val);
+
+                    if (window.length > moving_average) {
+                        sum -= window.shift(); // 범위를 벗어난 가장 오래된 숫자 제거
+                    }
+
+                    // 3. 이동 평균 계산 (현재 윈도우에 들어있는 유효 데이터 개수로 나눔)
+                    const avg = (sum / window.length) - calibrate;
+                    option.series[axis_x].data.push(Number(avg.toFixed(2)));
                 }
             }
         }
     }
+
     let chartDom = document.getElementById(dom);
     let chart    = echarts.init(chartDom, null, {renderer: 'canvas',useDirtyRect: false});
     chart.setOption(option);
