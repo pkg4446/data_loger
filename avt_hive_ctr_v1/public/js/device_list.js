@@ -532,7 +532,7 @@ function getdata_hive_25(send_data, device){
     });
 }
 ////-------------------////
-function list_shift(device_list,swap_a,swap_b) {
+function list_shift(device_list,type,swap_a,swap_b) {
     if(view_locker){
         let devices = [];
         if(swap_a != null && swap_b != null){
@@ -551,25 +551,25 @@ function list_shift(device_list,swap_a,swap_b) {
                     <div class="cell" id="${device[0]}">${device[1]}</div>
                     <div class="cell">${device[0]}</div>`
             if(index == 0)  HTML_script += `<div class="cell">위로</div>`
-            else            HTML_script += `<div class="cell" onclick=list_shift(${JSON.stringify(devices)},${index},${index-1})>위로</div>`
+            else            HTML_script += `<div class="cell" onclick=list_shift(${JSON.stringify(devices)},"${type}",${index},${index-1})>위로</div>`
             
             if(index == devices.length-1) HTML_script += `<div class="cell">아래로</div>`
-            else                          HTML_script += `<div class="cell" onclick=list_shift(${JSON.stringify(devices)},${index},${index+1})>아래로</div>`
+            else                          HTML_script += `<div class="cell" onclick=list_shift(${JSON.stringify(devices)},"${type}",${index},${index+1})>아래로</div>`
             HTML_script += "</div>";
         }
-        HTML_script += `<div class="btn" style="background-color:#4ce73c;" onclick=fetch_list_change(${JSON.stringify(devices)})>확인</div>`;
+        HTML_script += `<div class="btn" style="background-color:#4ce73c;" onclick=fetch_list_change(${JSON.stringify(devices)},"${type}")>확인</div>`;
         
         document.getElementById('farm_section_device').innerHTML = HTML_script;
     }
 }
 ////-------------------////
-function fetch_list_change(device_list) {
+function fetch_list_change(device_list,type) {
     const post_data = {
         id:     localStorage.getItem('user'),
         token:  localStorage.getItem('token'),
         list:   device_list
     }
-    fetch(window.location.protocol+"//"+window.location.host+"/hive/list_arrange", {
+    fetch(window.location.protocol+"//"+window.location.host+"/"+type+"/list_arrange", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -655,7 +655,7 @@ async function fetch_equipment(init) {
                 device_list.push(device);
                 HTML_script+= `<div class="unit-section" id="unit_${device[0]}"></div>`;
             }
-            HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},${null},${null})>벌통x5 정렬</div><br>`;
+            HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},"hive",${null},${null})>벌통x5 정렬</div><br>`;
             document.getElementById('farm_section_device').innerHTML = HTML_script;
             HTML_script = "";
         }
@@ -675,7 +675,7 @@ async function fetch_equipment(init) {
                 device_list.push(device);
                 HTML_script+= `<div class="unit-section" id="unit_${device[0]}"></div>`;
             }
-            HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},${null},${null})>벌통 정렬</div>`;
+            HTML_script += `<div class="btn" onclick=list_shift(${JSON.stringify(devices)},"hive_25",${null},${null})>벌통 정렬</div>`;
             document.getElementById('farm_section_device_25').innerHTML = HTML_script;
         }
         for (let index = 0; index < device_list.length; index++) {
