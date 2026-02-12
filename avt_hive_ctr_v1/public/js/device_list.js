@@ -135,7 +135,7 @@ function goal_temp_change(api,gorl_devid,devid,index_num) {
             input: "range",
             inputLabel: "목표온도",
             inputAttributes: {
-                min: "-"+calibration,
+                min: api=="hive"?"-"+calibration:0,
                 max: "35",
                 step: "1"
         },
