@@ -435,7 +435,7 @@ function getdata_hive_25(send_data, device){
         const heat_devid = "heat_"+device[0];
 
         let HTML_script  = `<div class="unit-info">
-                                <div class="cell" id="${device[0]}" onclick=device_rename("hive","${device[0]}") style="cursor:pointer;">${device[1]}</div>
+                                <div class="cell" id="${device[0]}" onclick=device_rename("hive_25","${device[0]}") style="cursor:pointer;">${device[1]}</div>
                                 <div class="cell">${device[0]}</div>`;
         if(response[0]!="null"){
             const device_log    = JSON.parse(response[0]);
